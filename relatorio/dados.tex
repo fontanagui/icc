@@ -1,0 +1,32 @@
+% Gerado por benchmark/analise.py a partir das amostras registradas.
+\newcommand{\ConstanteUltima}{1}
+\newcommand{\Repeticoes}{10}
+\newcommand{\EstadoRelatorio}{Ensaio preliminar}
+\newcommand{\ResumoMedido}{Para $N=20000$, o tempo médio total passou de 6,249 para 2,761 ms no ensaio preliminar, com razão de 2,26 entre os tempos. A caracterização por contadores LIKWID está pendente.}
+\newcommand{\AmbienteMedido}{As execuções foram fixadas na CPU lógica 2. O sistema identificou o processador AMD EPYC 9V45 96-Core Processor. O compilador foi \emph{gcc (Debian 14.2.0-19) 14.2.0}. A detecção de arquitetura do GCC selecionou \texttt{znver5}. Os recursos SIMD expostos incluem AVX, AVX2, AVX-512, FMA. O ambiente expõe 9 CPUs lógicas e a indicação de hipervisor. A hierarquia física de cache, a frequência efetiva e as condições de isolamento ficam indeterminadas para esta coleta. }
+\newcommand{\ResultadosMedidos}{%
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{tempo-newton_total.pdf}
+\caption{Tempo de execução para o método de Newton. A faixa sombreada indica um desvio-padrão em torno da média.}
+\end{figure}
+Para $N=20000$, a baseline mediu 6,249 e a otimizada, 2,761. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0143 e 0,0071 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 2,26. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 2,02. A curva agrega resíduo, Jacobiana, resolução linear e atualização. Em $N=32$, a baseline teve média de 0,0143 ms e mediana de 0,0117 ms. O desvio-padrão equivaleu a 57\% da média.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{tempo-jacobiana.pdf}
+\caption{Tempo de execução para a construção da Jacobiana. A faixa sombreada indica um desvio-padrão em torno da média.}
+\end{figure}
+Para $N=20000$, a baseline mediu 0,354 e a otimizada, 0,053. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0007 e 0,0007 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 6,69. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 2,75. A menor região é sensível à resolução do relógio e ao custo de chamada. Em $N=10000$, a baseline teve média de 0,2568 ms e mediana de 0,0727 ms. O desvio-padrão equivaleu a 225\% da média.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{tempo-sistema_linear.pdf}
+\caption{Tempo de execução para a solução do sistema linear. A faixa sombreada indica um desvio-padrão em torno da média.}
+\end{figure}
+Para $N=20000$, a baseline mediu 5,448 e a otimizada, 2,606. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0086 e 0,0043 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 2,09. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 1,99. A eliminação e a retrocessão mantêm dependências entre linhas vizinhas. Em $N=10000$, a baseline teve média de 3,1685 ms e mediana de 2,7372 ms. O desvio-padrão equivaleu a 41\% da média.
+
+\subsection{Contadores pendentes}
+A campanha ainda precisa de séries completas para \texttt{MEM}, \texttt{L2CACHE}, \texttt{FLOPS\_DP}, \texttt{FLOPS\_AVX}. 
+As curvas correspondentes requerem a coleta dos contadores em um equipamento compatível.
+}

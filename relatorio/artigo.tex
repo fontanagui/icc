@@ -1,0 +1,146 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=24mm]{geometry}
+\usepackage{amsmath,amssymb,graphicx,booktabs,tabularx,float}
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{relatorio/figuras/}}
+\renewcommand{\abstractname}{Resumo}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabela}
+\renewcommand{\refname}{Referências}
+\setlength{\parskip}{0.3em}
+\setlength{\parindent}{1.15em}
+\setlength{\emergencystretch}{1.25em}
+\hypersetup{pdftitle={Resolução tridiagonal de sistemas não lineares de Broyden},pdfsubject={CI1164 - Método de Newton e análise de desempenho}}
+\newcommand{\Autores}{} % Insira o nome dos integrantes e os logins do DInf.
+\input{relatorio/dados.tex}
+
+\title{\textbf{Resolução tridiagonal de sistemas\\não lineares de Broyden}}
+\author{\Autores\ifx\Autores\empty\else\\[3pt]\fi
+  \small CI1164 -- Introdução à Computação Científica\\
+  \small Departamento de Informática, Universidade Federal do Paraná}
+\date{\small\EstadoRelatorio}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Estudamos a resolução do sistema tridiagonal de Broyden com o método de Newton. Comparamos uma eliminação em banda com pivotamento parcial e uma implementação que aplica Thomas especializado quando há uma garantia sobre os pivôs. Ambas constroem a Jacobiana analiticamente e usam tempo e memória lineares na dimensão do sistema por iteração. A versão otimizada reduz as gravações na construção da Jacobiana, explora laços vetorizáveis e reutiliza a divisão da eliminação na retrocessão. \ResumoMedido
+\end{abstract}
+
+\noindent\textbf{Palavras-chave}\quad Método de Newton, Jacobiana tridiagonal, pivotamento parcial, LIKWID.
+
+\section{Introdução}
+
+O método de Newton para sistemas não lineares resolve um sistema linear a cada passo. O custo de uma implementação depende da forma de representar a Jacobiana e do algoritmo adotado para resolver esses sistemas. O problema de Broyden oferece uma estrutura conhecida que permite comparar duas implementações seriais com a mesma ordem de complexidade. Avaliamos a contribuição da construção da Jacobiana e do solucionador linear no tempo das 25 atualizações.
+
+\section{Formulação}
+
+Seja $X=(x_1,\ldots,x_N)^T$. A função usada é
+\begin{equation}
+F_i(X)=(3-2x_i)x_i-x_{i-1}-2x_{i+1}+c_i,\qquad 1\le i\le N,
+\label{eq:broyden}
+\end{equation}
+com vizinhos de contorno $x_0=x_{N+1}=0$, $c_i=1$ para $i<N$ e $c_N=\ConstanteUltima$. O símbolo $x_0$ usado no enunciado para a entrada designa o valor inicial comum de $x_1,\ldots,x_N$. Os vizinhos de contorno da equação~\eqref{eq:broyden} são constantes distintas do valor inicial.
+
+A função clássica de Moré, Garbow e Hillstrom~\cite{more} usa $c_N=1$. O gerador de expressões fornecido pela disciplina omite o termo constante na última linha. Sua entrada gerada também contém fórmulas textuais e um vetor inicial. A execução deste trabalho recebe os quatro parâmetros escalares do enunciado. A conferência da última linha com a imagem oficial depende de acesso à disciplina no Moodle. A opção \texttt{LAST\_CONSTANT} do Makefile permite reproduzir ambas as variantes.
+
+Em cada passo $k$,
+\begin{equation}
+J(X^{(k)})\,\Delta X^{(k)}=-F(X^{(k)}),\qquad
+X^{(k+1)}=X^{(k)}+\Delta X^{(k)}.
+\end{equation}
+A Jacobiana tem diagonal $d_i=3-4x_i$, subdiagonal $-1$, superdiagonal $-2$ e zeros fora da banda. Com tolerância positiva, o programa testa $\|F(X^{(k)})\|_\infty\le\epsilon$ antes de montar a Jacobiana. A norma do resíduo usa máximo dos módulos. Uma correção pequena pode indicar estagnação e, sozinha, é insuficiente para aceitar o vetor. Com $\epsilon=0$, o laço executa até \texttt{MAX}, sujeito a uma falha numérica diagnosticada. A execução com \texttt{MAX=0} imprime o vetor inicial e tempos zerados.
+
+\section{Implementação e otimizações}
+
+\subsection{Eliminação em banda}
+
+A baseline materializa os três vetores da Jacobiana. Em cada coluna, a eliminação considera o pivô corrente e o elemento imediatamente abaixo dele. Uma troca pode criar uma segunda superdiagonal, armazenada na posição liberada da subdiagonal. Cada coluna exige um conjunto constante de operações. A retrocessão usa até dois elementos à direita por linha. O esquema de pivôs partilha a estrutura matemática descrita na documentação da rotina DGTSV~\cite{lapack}. O programa implementa sua própria eliminação em C.
+
+A otimizada calcula os $d_i$ e examina a condição suficiente $|d_i|\ge 3$ com valores finitos. Escrevendo $b=-F(X)$, a eliminação sem trocas usa
+\begin{align*}
+p_1 &= d_1, & w_1 &= b_1/p_1,\\
+p_i &= d_i-2/p_{i-1}, & w_i &= (b_i+w_{i-1})/p_i, \qquad i\ge2.
+\end{align*}
+Como $|p_1|\ge3$ e $|d_i|-2/|p_{i-1}|\ge2$ quando $|p_{i-1}|\ge2$, segue por indução que todos os pivôs têm módulo pelo menos 2. A retrocessão começa com $\Delta x_N=w_N$ e aplica $\Delta x_i=w_i+(2/p_i)\Delta x_{i+1}$. O código guarda $2/p_i$ e $w_i$ nos vetores que continham $d_i$ e $b_i$, usando uma divisão por linha. A baseline usa uma divisão por linha na retrocessão além das divisões da eliminação. Se a condição suficiente falha, a versão otimizada usa a eliminação com pivotamento da baseline, ainda em tempo linear.
+
+\subsection{Acesso à memória e vetorização}
+
+O conjunto de técnicas segue os tópicos de layout, acesso sequencial, aliasing e dependências discutidos nas notas da disciplina~\cite{slides}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\linewidth}{@{}p{0.30\linewidth}X@{}}
+\toprule
+Trecho & Técnica e efeito esperado \\
+\midrule
+\texttt{broyden\_rhs} & Fronteiras fora do laço interno e vizinhos em posições consecutivas. O GCC pode agrupar operações em SIMD. \\
+\texttt{constroi\_jacobiana} & Vetores contíguos e diagonal analítica. A dimensão $N$ exige $N$ escritas de coeficientes no caminho de Thomas. A baseline escreve $3N-2$. \\
+\texttt{resolve\_sistema} & Fora do caminho com trocas, as diagonais laterais são constantes implícitas. A reutilização de $1/p_i$ elimina as divisões durante a retrocessão. \\
+\texttt{aplica\_passo} & Atualização e checagem de finitude em uma passagem. A troca de ponteiros reutiliza o vetor anterior como área de trabalho. \\
+\texttt{aloca\_trabalho} & Uma alocação antes do laço com fatias alinhadas a 64 bytes na versão otimizada. O uso de \texttt{restrict} expressa que as fatias lidas e escritas são disjuntas. \\
+\bottomrule
+\end{tabularx}
+\caption{Otimizações aplicadas aos trechos computacionais.}
+\end{table}
+
+As duas versões reservam cinco vetores de \texttt{double} em uma área contígua, com arredondamento dos comprimentos na otimizada para alinhar o início de cada vetor. Com $N=20000$, a reserva soma 800\,000 bytes por versão. O caminho de Thomas acessa três vetores, totalizando 480\,000 bytes de dados distintos no passo de Newton. As duas fatias restantes estão disponíveis para o caminho com pivotamento. Uma Jacobiana densa conteria $N^2$ elementos e reservaria 3,2 GB nesse tamanho. Materializá-la exigiria $\Theta(N^2)$ escritas e usar eliminação densa exigiria $\Theta(N^3)$ operações. Calcular diferenças finitas coluna a coluna com uma avaliação de $F$ para cada perturbação também custaria $\Theta(N^2)$ operações. Na implementação escolhida, resíduo, Jacobiana, solução linear e atualização custam $\Theta(N)$ por passo e o armazenamento de trabalho é $\Theta(N)$.
+
+Na compilação inspecionada, o GCC informou vetorização de 32 e 64 bytes para o laço interno do resíduo otimizado, a diagonal, a checagem de dominância e a atualização. A inspeção do objeto da Jacobiana mostrou movimentos alinhados na versão otimizada. O solucionador mantém instruções escalares de divisão na recorrência. O pivô e o lado direito reduzido dependem da linha precedente, e a retrocessão depende da próxima linha. Os laços independentes foram delegados ao compilador. Preservamos a aritmética em dupla precisão e as verificações de finitude.
+
+\subsection{Ensaios isolados de otimização}
+
+Em um ensaio de desenvolvimento com dez repetições em $N=20000$, o alinhamento explícito reduziu a média da Jacobiana otimizada de 0,0653 para 0,0491 ms. As médias de tempo total foram 2,959 e 2,952 ms, com desvios de 0,046 e 0,110 ms, respectivamente. O ganho observado nesse ensaio está concentrado na construção da Jacobiana. A máquina virtual e a dispersão limitam a interpretação da diferença no tempo total.
+
+Em outro ensaio pareado no mesmo ambiente, a contração explícita de multiplicação e soma em FMA reduziu a média do sistema linear otimizado de 2,835 para 2,656 ms em $N=20000$. As médias de tempo total foram 2,997 e 2,824 ms. A versão fundida passou pela regressão numérica. Por isso, as duas versões da campanha usam \texttt{-ffp-contract=fast}. A opção permite a contração quando a arquitetura admite a instrução. A reassociação ampla de \texttt{-ffast-math} ficou fora dos experimentos, pois as verificações de finitude fazem parte da execução.
+
+\section{Validação numérica}
+
+Um teste de kernels comparou a Jacobiana com diferenças centrais para cada entrada de uma matriz de dimensão cinco. Três sistemas com solução construída exercitaram dominância e trocas de linha, incluindo candidatos a pivô de magnitude $10^{-16}$. Um segundo conjunto comparou cada passo de Newton em dimensão até dez com eliminação densa independente, aferiu $J\Delta X+F(X)$ e confirmou os vetores finais das duas versões em 22 casos válidos. O conjunto também cobriu dimensões de 1 a 20000, entradas inválidas, falhas de alocação induzidas com limite de memória, casos singulares e resultados não finitos.
+
+Com $x_i^{(0)}=-1$, $\epsilon=0$ e \texttt{MAX=25}, ambas as versões completaram 25 atualizações em todos os tamanhos. O maior resíduo final verificado para a formulação clássica ficou abaixo de $1{,}4\times 10^{-15}$ nas duas versões. Os testes com AddressSanitizer e UndefinedBehaviorSanitizer passaram. A verificação de vazamentos do LeakSanitizer exigia recursos ausentes no ambiente virtual e foi desabilitada nessa execução.
+
+\section{Metodologia experimental}
+
+\AmbienteMedido
+
+As duas versões foram compiladas com GCC na máquina de medição. A baseline e a otimizada receberam as opções \texttt{-O3 -march=native -mavx -fopt-info-vec}. Os sistemas das duas versões usam os mesmos valores de entrada, $x_i^{(0)}=-1$, $\epsilon=0$, \texttt{MAX=25} e
+\begin{equation*}
+ N\in\{32,64,128,256,512,1000,2000,4000,8000,9000,10000,20000\}.
+\end{equation*}
+Foi executado um aquecimento por ponto e por versão, seguido de \Repeticoes{} repetições em processos independentes. Os tamanhos foram embaralhados com semente fixa e a versão executada primeiro alternou entre os pares. Os resultados são a média das amostras de cada configuração. A dispersão, a mediana e os extremos também são preservados no CSV.
+
+Os tempos vêm de \texttt{timestamp()}, em milissegundos, sem ativação do LIKWID nesta família de medições. O programa acumula separadamente o intervalo computacional de cada passo e os intervalos para montar $J$ e resolver o sistema linear. Inicialização, formatação e escrita de vetores ocorrem fora desses intervalos. O descarte para \texttt{/dev/null} evita armazenamento da saída e mantém a formatação real entre passos, com possível efeito sobre o estado do cache.
+
+Nos binários instrumentados, a região \texttt{Newton\_Total} contém os marcadores \texttt{Jacobiana} e \texttt{Sistema\_Linear}. Registramos os nomes uma vez e os marcadores são acionados por passo. O LIKWID acumula leituras sobre chamadas sucessivas~\cite{likwid}. O coletor valida 25 chamadas de cada região na CPU selecionada e salva a saída nativa antes de extrair as métricas. O custo da instrumentação das regiões internas integra a medição do marcador externo. Em regiões curtas, chamadas do relógio, dos marcadores e variação da frequência podem ter peso relevante~\cite{pitfalls}.
+
+As métricas prescritas são a banda de memória de \texttt{MEM}, a taxa de faltas de \texttt{L2CACHE} e as taxas de operações de \texttt{FLOPS\_DP} e \texttt{FLOPS\_AVX}. A coleta sonda \texttt{L3}, \texttt{L1CACHE} e \texttt{CACHE} na ordem prevista quando o grupo principal fica indisponível. As legendas identificam o grupo usado e o nome real da métrica. Em processadores diferentes, o grupo vetorial pode abranger larguras de instrução diferentes. Os eventos e as fórmulas da CPU são registrados por \texttt{likwid-perfctr -H -g}. As taxas DP total e AVX são lidas como séries independentes.
+
+\section{Resultados}
+
+\ResultadosMedidos
+
+\section{Discussão}
+
+Definimos a aceleração como a razão entre as médias de tempo da baseline e da otimizada. Como as duas versões têm complexidade linear, a comparação avalia diferenças na quantidade de operações, no tráfego de dados e no código produzido pelo compilador. A região do sistema linear executa um laço de eliminação com uma dependência de divisão e outro de retrocessão com dependência de leitura da correção vizinha. A construção da Jacobiana consiste em poucos cálculos e uma passagem por um vetor, o que torna a medição em dimensões pequenas sensível a custos fixos. O desvio-padrão mostrado nos gráficos ajuda a avaliar essas duas situações.
+
+O efeito de cache depende dos tamanhos e associatividade disponíveis na CPU de teste, do reuso entre regiões e dos acessos do processo que escreve os vetores. Banda de memória é uma taxa de transferência. Para investigar se uma banda maior veio de mais tráfego, também é necessário examinar o volume e a duração da região. A interpretação de MFLOP/s depende dos eventos que contam operações escalares, vetoriais e instruções fundidas. Uma aceleração pode vir da eliminação de operações e corresponder a uma taxa aritmética menor. Um estudo Roofline requer banda e trabalho de ponto flutuante medidos no ambiente da campanha.
+
+\section{Conclusão}
+
+A construção analítica e a exploração da banda permitem resolver cada passo em tempo e memória $\Theta(N)$. O pivotamento adjacente cobre entradas fora da condição suficiente de Thomas e os testes com casos construídos confirmaram a operação da retrocessão após as trocas. As séries de tempo permitem comparar as duas implementações por região. A validação da última equação contra a figura do enunciado e a cobertura dos contadores estão documentadas junto à formulação e aos resultados.
+
+\begin{thebibliography}{9}
+\raggedright
+\bibitem{more} MORÉ, J. J., GARBOW, B. S. e HILLSTROM, K. E. \emph{Testing Unconstrained Optimization Software}. ACM Transactions on Mathematical Software, v. 7, n. 1, p. 17--41, 1981. \url{https://doi.org/10.1145/355934.355936}.
+\bibitem{slides} DELGADO, A. L. N. e DERENIEVICZ, G. \emph{Otimização Básica. Parte 9, Código Serial}. Material de aula de CI1164, Departamento de Informática, UFPR.
+\bibitem{lapack} LAPACK. \emph{DGTSV, solução de sistemas tridiagonais com pivotamento parcial}. Netlib. \url{https://www.netlib.org/lapack/explore-html/d6/ddb/group__gtsv_ga6b06a11b8e2dced10bc9cd3c20a09484.html}.
+\bibitem{likwid} RRZE-HPC. \emph{likwid-perfctr e Marker API}. \url{https://github.com/RRZE-HPC/likwid/wiki/likwid-perfctr}.
+\bibitem{pitfalls} RRZE-HPC. \emph{LikwidMarkerAPIPitfalls}. \url{https://github.com/RRZE-HPC/likwid/wiki/LikwidMarkerAPIPitfalls}.
+\end{thebibliography}
+\end{document}

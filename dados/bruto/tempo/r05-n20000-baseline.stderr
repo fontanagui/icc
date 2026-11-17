@@ -1,0 +1,2 @@
+$ taskset -c 2 ./broyden_baseline
+BROYDEN_STATS,25,5.75382899912,0.189882999752,5.27567700064

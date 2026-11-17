@@ -1,281 +1,75 @@
-# Newton para Sistemas Não Lineares de Broyden
+# Broyden tridiagonal · CI1164
 
-Programa em C para resolver o sistema de Broyden da imagem do enunciado usando
-o Método de Newton. Há duas versões corretas para comparar o custo de usar
-uma matriz cheia com o de explorar sua estrutura tridiagonal.
+O programa resolve o sistema não linear de Broyden com Newton em dupla precisão. A execução oficial usa `./broyden`. Cada atualização custa tempo e memória de trabalho proporcionais a `N`.
 
-## Organização
+## Compilar, executar e testar
 
-```text
-.
-├── Makefile                 # Compila versões, executa testes e limpa produtos
-├── README.md                # Este guia
-├── otimizada/               # Fontes e Makefile da versão tridiagonal
-├── baseline/                # Fontes e Makefile da versão densa
-├── referencia/              # Material original recebido, com créditos preservados
-├── scripts/
-│   ├── gerar_entradas.sh     # Gera linhas de entrada no formato atual
-│   ├── medir_tempos.py       # Coleta tempos internos em CSV
-│   └── plotar_tempos.py      # Gera os três gráficos de tempo
-└── tests/
-    ├── test_broyden.py       # Correção, formato e casos de borda
-    └── test_comparacao.py    # Compara as iterações das duas versões
-```
+Requer Linux x86-64 com AVX, GCC e GNU Make. Python 3 é usado nos testes.
 
-Os arquivos de compilação ficam em `otimizada/build/` e `baseline/build/`.
-O diretório `resultados/` é criado pelo coletor de tempos quando necessário.
-As versões atuais não dependem de libmatheval. A pasta `referencia/` conserva
-o programa genérico antigo e não participa da compilação principal.
-
-## Requisitos
-
-- GCC e GNU Make em Linux/x86 com suporte a AVX;
-- Python 3 para testes e coleta de tempos;
-- matplotlib para gerar gráficos de tempo;
-- LIKWID com biblioteca, cabeçalhos e acesso aos contadores para os testes de hardware;
-- `taskset` se usar a opção `--cpu` no coletor.
-
-GCC compila ambas as versões com:
-
-```text
--O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic
-```
-
-Compile na própria máquina usada nos experimentos. `-march=native` especializa
-o executável para a CPU local. Mensagens `optimized: loop vectorized` são
-diagnósticos esperados do compilador.
-
-## Compilar e executar
-
-Execute os comandos abaixo na raiz do projeto.
-
-```sh
-# Compila a versão otimizada e disponibiliza ./broyden, conforme o enunciado.
+```bash
 make
-printf '32 -1 0 25\n' | ./broyden
-
-# Compila as duas versões.
-make versoes
-printf '32 -1 0 25\n' | ./otimizada/broyden
-printf '32 -1 0 25\n' | ./baseline/broyden
-```
-
-`./broyden` é uma cópia do executável otimizado, criada pelo Makefile principal.
-Também é possível trabalhar dentro de cada pasta com `make`, `./broyden`,
-`make test` e `make clean`.
-
-### Entrada
-
-Cada execução lê **um único caso** da entrada padrão:
-
-```text
-N x0 epsilon MAX
-```
-
-Os valores podem ser separados por espaços ou quebras de linha.
-
-| Parâmetro | Significado | Valores aceitos |
-|---|---|---|
-| N | Número de incógnitas | Inteiro entre 2 e INT_MAX, sujeito à memória disponível |
-| x0 | Mesmo valor inicial para todas as incógnitas | Número finito |
-| epsilon | Tolerância absoluta de parada | Número finito maior ou igual a zero |
-| MAX | Máximo de atualizações de Newton | Inteiro entre 0 e INT_MAX |
-
-`epsilon=0` desativa a parada por tolerância. Sem falhas numéricas, são
-executadas exatamente MAX atualizações. Para os experimentos do enunciado,
-use `epsilon=0` e `MAX=25`, mantendo o mesmo x0 nas duas versões; os exemplos
-usam x0=-1. `MAX=0` imprime somente o estado inicial.
-
-Para gerar os casos exigidos:
-
-```sh
-bash scripts/gerar_entradas.sh
-# Ou somente alguns tamanhos:
-bash scripts/gerar_entradas.sh 32 64 128
-```
-
-O script imprime uma linha por caso. Como o executável lê um caso por
-invocação, execute cada linha separadamente ou use o coletor de tempos.
-Os exemplos em `referencia/sist.dat` pertencem ao formato genérico antigo.
-
-### Saída
-
-São impressos o estado inicial (iteração 0) e cada estado após uma atualização.
-Cada incógnita aparece como `x1 = valor`, `x2 = valor`, etc., em linhas
-separadas. Uma linha `#` separa estados. Com MAX=25 e epsilon=0, são 26 estados.
-
-Ao final, entre duas linhas `###########`, aparecem três números em ms:
-
-1. Tempo total do laço de Newton;
-2. Soma dos tempos de construção das Jacobianas;
-3. Soma dos tempos de resolução dos sistemas lineares.
-
-Os tempos usam `timestamp()` de `utils.c`, com `CLOCK_MONOTONIC_RAW`.
-Alocação, inicialização e impressão ficam fora da região medida. O histórico
-é copiado dentro do laço e impresso depois, evitando que printf domine os
-tempos. Erros de entrada, alocação, singularidade ou valores não finitos são
-reportados em stderr, com código de saída diferente de zero.
-
-## Diferenças entre as versões
-
-| Característica | `otimizada/` | `baseline/` |
-|---|---|---|
-| Jacobiana | Quatro diagonais contíguas, incluindo preenchimento do pivoteamento | Matriz cheia contígua N × N, com ponteiros de linhas |
-| Construção da Jacobiana | O(N) | O(N²), preenche também os zeros |
-| Resolução linear | Gauss tridiagonal com pivoteamento parcial entre linhas adjacentes | Gauss genérico com pivoteamento parcial em toda a coluna |
-| Custo da resolução | O(N) por iteração | O(N³) por iteração |
-| Espaço da matriz | O(N) | O(N²) |
-| Entrada, saída e critérios | Iguais | Iguais |
-| Opções de compilação e marcadores | Iguais | Iguais |
-
-A baseline percorre toda a submatriz na eliminação e todos os elementos
-restantes na substituição regressiva. A otimizada evita armazenar e operar
-sobre zeros estruturais. Ambas calculam as derivadas analiticamente e
-reutilizam os buffers; o cálculo de F e a rotina de Newton são iguais.
-Não há atrasos artificiais na baseline.
-
-A comparação avalia principalmente algoritmo e estrutura de dados. Não se
-pode atribuir todo o ganho a AVX: o compilador pode vetorizar laços nas duas
-versões. A recorrência da eliminação tridiagonal continua sequencial.
-
-**Tamanhos grandes na baseline:** para N=20000, só a matriz ocupa
-3.200.000.000 bytes (aproximadamente 2,98 GiB). O custo cúbico pode tornar
-as 25 iterações muito demoradas. Os testes rápidos usam tamanhos menores;
-isso não substitui a série completa exigida para a análise do trabalho.
-
-Nas duas versões, o histórico consome O((MAX+1)×N) doubles, além do espaço
-numérico: cerca de 4,16 MB para N=20000 e MAX=25.
-
-### Fórmula e critérios numéricos
-
-Com índices de 1 a N, a função implementada é:
-
-```text
-f1 = (3 - 2*x1)*x1 - 2*x2 + 1
-fi = (3 - 2*xi)*xi - x(i-1) - 2*x(i+1) + 1,  2 <= i < N
-fN = (3 - 2*xN)*xN - x(N-1)
-```
-
-A última equação não tem o termo `+1`, conforme a imagem fornecida.
-A Jacobiana tem diagonal `3 - 4*xi`, subdiagonal `-1` e superdiagonal `-2`.
-A fórmula fornecida requer N>=2.
-
-A cada atualização, resolve-se `J(x)*s = -F(x)` e calcula-se `x = x + s`.
-Para epsilon>0, a execução para se a norma infinito de F for menor ou igual
-à tolerância antes da resolução, ou se a norma infinito do passo for menor
-ou igual à tolerância depois da atualização. O critério do passo isolado
-não garante resíduo pequeno. Atingir MAX é uma parada normal e também não
-garante convergência.
-
-### Módulos em cada versão
-
-| Arquivo | Responsabilidade |
-|---|---|
-| `resolucaoSNL.c` | Apenas main: entrada, validação e coordenação |
-| `NewtonSNL.*` | Newton, histórico, critérios e impressão |
-| `SistNaoLinear.*` | F, Jacobiana e norma infinito |
-| `SistLinear.*` | Representação, alocação e liberação da matriz |
-| `EliminacaoGauss.*` | Resolução linear com pivoteamento |
-| `utils.*` | Timestamp fornecido e funções auxiliares |
-| `marcadores.h` | Instrumentação LIKWID opcional |
-
-## Testes
-
-```sh
+printf '32\n-1\n1e-12\n25\n' | ./broyden
+make baseline
 make test
+make sanitize
 ```
 
-Esse comando compila as duas versões e executa:
+A entrada é `N x0 epsilon MAX`, separada por espaços ou quebras de linha. `x0` é o valor inicial comum. Cada bloco de `stdout` contém `x1` a `xN`. Os blocos vêm separados por `#`. O rodapé contém o tempo total, o da Jacobiana e o da solução linear, em milissegundos. Um diagnóstico de falha é enviado a `stderr` com status de saída não zero.
 
-- Na otimizada: os 12 tamanhos exigidos até N=20000, com x0=-1,
-  epsilon=0 e MAX=25, verificando resíduo final inferior a 1e-11;
-- Na baseline: casos até N=256, com os mesmos parâmetros;
-- Comparação de todos os estados entre versões até N=512, com tolerância
-  absoluta/relativa de 1e-10, sem comparar os tempos;
-- Comparação com Gauss denso independente em Python, casos com pivô zero,
-  singularidade, tolerância positiva, MAX=0 e entradas inválidas.
+O valor `epsilon=0` faz o laço executar até `MAX`, salvo falha numérica. Com `epsilon>0`, o programa aceita um iterado se `max(abs(F_i)) <= epsilon`. Com `MAX=0`, imprime o vetor inicial e três tempos iguais a zero. `make clean` remove executáveis e arquivos de compilação.
 
-Para testar uma versão isoladamente:
+### Última equação
 
-```sh
-make -C otimizada test
-make -C baseline test
-```
+O padrão `LAST_CONSTANT=1` é a definição clássica, com `+1` na última equação. O gerador de expressões fornecido omite a constante nessa linha. A imagem do Moodle tem acesso restrito. Confira a última equação do enunciado antes de entregar. Se a figura usar a variante do gerador, compile e teste com `make test LAST_CONSTANT=0`, e inclua `LAST_CONSTANT=0` na coleta. Se essa for a variante exigida, defina `LAST_CONSTANT ?= 0` no Makefile antes de empacotar, para alinhar o `make` padrão ao corretor.
 
-## Coleta de tempos e gráficos
+## Campanha com LIKWID
 
-Exemplo inicial com os mesmos tamanhos nas duas versões:
+Use uma máquina física conforme o enunciado, com `likwid-perfctr`, `likwid-topology`, cabeçalhos do LIKWID e `liblikwid`. Matplotlib é necessário para as figuras e uma instalação LaTeX com `pdflatex` e Latin Modern para produzir o artigo. Em Linux Mint e Ubuntu, os pacotes `likwid`, `python3-matplotlib`, `texlive-latex-extra` e `lmodern` fornecem essas dependências nas distribuições que os disponibilizam.
 
-```sh
-make versoes
-python3 scripts/medir_tempos.py --exe ./otimizada/broyden --versao otimizada --tamanhos 32 64 128 256 512 --saida resultados/otimizada.csv
-python3 scripts/medir_tempos.py --exe ./baseline/broyden --versao baseline_densa --tamanhos 32 64 128 256 512 --saida resultados/baseline.csv
-python3 scripts/plotar_tempos.py resultados/otimizada.csv resultados/baseline.csv
-```
-
-O coletor faz um aquecimento por tamanho e dez repetições por padrão. Use
-`--repeticoes 20` para alterar a quantidade e `--cpu NUMERO` para fixar a
-execução a um núcleo disponível via taskset. Mantenha o mesmo núcleo e
-as mesmas condições nas duas versões. Os tempos são os internos do programa,
-sem a impressão. Sem `--tamanhos`, o coletor usa todos os 12 tamanhos exigidos.
-
-Os três gráficos PDF ficam em `resultados/graficos/`. Cada um mostra uma
-região, com cores distintas por versão e médias aritméticas por N. Os eixos
-N e tempo são logarítmicos. A geração requer matplotlib.
-
-## LIKWID
-
-Para instrumentar ambas as versões:
-
-```sh
-make versoes LIKWID=1
-# Em instalação fora dos caminhos padrão:
-# make versoes LIKWID=1 LIKWID_INC=/caminho/include LIKWID_LIB=/caminho/lib
-
-likwid-topology -g -c > topologia.txt
+```bash
+likwid-topology -g -c
 likwid-perfctr -a
-printf '32 -1 0 25\n' | likwid-perfctr -C 0 -g MEM -m ./otimizada/broyden
-printf '32 -1 0 25\n' | likwid-perfctr -C 0 -g MEM -m ./baseline/broyden
+make likwid
+make benchmark BENCH_ARGS='--out resultados'
+python3 benchmark/analise.py resultados --relatorio relatorio
+make relatorio-pdf
 ```
 
-Troque o núcleo 0 por um disponível. Marcadores em ambas as versões:
+Por padrão, a coleta escolhe a primeira CPU lógica da afinidade do processo. Para fixar outra CPU física apropriada, acrescente `--cpu ID` a `BENCH_ARGS` com o identificador lógico indicado por `likwid-topology`. O diretório informado em `--out` deve estar disponível para criação, para manter cada campanha em uma pasta própria. O coletor recompila com GCC na máquina de testes, fixa cada processo naquele núcleo, faz um aquecimento e coleta dez repetições para ambas as versões. Todos os resultados válidos usam `x0=-1`, `epsilon=0` e 25 atualizações. Use `--so-tempo` para executar apenas a coleta de tempos. A execução completa tenta as alternativas `L3`, `L1CACHE` e `CACHE` quando necessário e sinaliza grupos pendentes.
 
-| Marcador | Região |
+Para uma instalação fora dos caminhos padrão, informe `LIKWID_CPPFLAGS=-I/caminho/include` e `LIKWID_LDFLAGS=-L/caminho/lib` no Makefile ou no ambiente. Para confirmar a instrumentação isoladamente, esta invocação salva o relatório do LIKWID à parte da solução. O exemplo pressupõe a CPU lógica 0 e o grupo `FLOPS_DP` disponíveis.
+
+```bash
+printf '1000\n-1\n0\n25\n' | \
+  BROYDEN_STATS=1 likwid-perfctr -C 0 -g FLOPS_DP -m -O \
+  -o perfctr.csv ./broyden_likwid >/dev/null
+```
+
+As pastas `ambiente` e `bruto` da campanha registram topologia, flags, fórmulas de métricas e a saída original da coleta. `medicoes.csv` tem uma linha para cada repetição e região. `resumo.csv` registra média, mediana, desvio-padrão, mínimo e máximo. `campanha.json` indica quais grupos foram concluídos. Uma campanha com as quatro famílias de métricas produz doze gráficos. As legendas distinguem as versões e, nas curvas de FLOPS, os grupos DP e AVX.
+
+Para reproduzir ensaios isolados de otimização, `FP_CONTRACT=off` desativa a contração FMA e `EXTRA_CPPFLAGS=-DBROYDEN_SEM_ALINHAMENTO` usa `malloc` convencional na otimizada. Use a mesma CPU e os mesmos parâmetros em todas as medições comparadas.
+
+## Organização dos arquivos
+
+| Arquivo ou pasta | Conteúdo |
 |---|---|
-| NEWTON | Laço completo de Newton |
-| JACOBIANA | Construção da Jacobiana, acumulada entre iterações |
-| SISTEMA_LINEAR | Resolução linear, acumulada entre iterações |
+| `main.c`, `io.c` | Entrada, geração da saída e código de retorno |
+| `newton.c` | Espaço de trabalho, iterações, parada, temporizadores e marcadores |
+| `broyden.c`, `jacobiana.c` | Resíduo, atualização e derivadas analíticas |
+| `sistema_linear.c` | Thomas certificado e eliminação tridiagonal com pivotamento |
+| `utils.c`, `utils.h` | Módulos fornecidos pela disciplina, incluindo `timestamp()` |
+| `tests/` | Testes numéricos, da interface e dos formatos do LIKWID |
+| `benchmark/` | Coleta, análise, geração de gráficos e empacotamento |
+| `relatorio/` | Artigo editável em LaTeX e figuras da campanha incorporada |
+| `DEFESA_TECNICA.md` | Roteiro para a defesa oral |
 
-Os marcadores internos estão contidos em NEWTON: não some suas métricas ao
-total como se fossem regiões disjuntas. O tempo total inclui F, normas,
-atualizações, cópias do histórico e instrumentação dos trechos internos.
-A sobrecarga de timestamp e marcadores pode ser significativa para N pequeno.
+## Fechar o artigo e o ZIP
 
-O enunciado exige banda de memória (MEM, ou L3), cache miss L2
-(L2CACHE, ou alternativa L1 permitida) e operações aritméticas
-(FLOPS_DP/FLOPS_AVX). Consulte os grupos e métricas disponíveis na CPU local,
-documentando substituições. Use os resultados por marcador, porque o
-processo completo também imprime o histórico.
+O PDF incluído apresenta o ensaio preliminar de tempo em ambiente virtual. Os nove gráficos de hardware dependem da coleta em máquina compatível. Depois de rodar `benchmark/analise.py`, revise as figuras e a interpretação dos eventos no artigo. Preencha `\Autores` em `relatorio/artigo.tex` com os integrantes e os logins. Em seguida, recompile o PDF e passe seu login, ou os dois separados por hífen, para o empacotador. O empacotador usa a mesma base no ZIP, na pasta interna e no PDF interno.
 
-Para voltar à compilação sem LIKWID, use `make versoes LIKWID=0`.
-
-## Limpeza e situação da entrega
-
-```sh
-make clean
+```bash
+make relatorio-pdf
+python3 benchmark/empacota.py login1-login2 --dados resultados
 ```
 
-Remove executáveis, objetos, dependências de compilação e caches Python das
-duas versões. Preserva fontes, referência e resultados experimentais.
-Os produtos de compilação, caches e resultados locais estão no `.gitignore`.
-
-A implementação e os testes estão disponíveis. Ainda faltam as medições
-LIKWID reais, a análise experimental completa, os nove gráficos de hardware,
-os três gráficos de tempo com dados finais, o artigo em PDF e o pacote com
-os logins dos autores. Neste ambiente, LIKWID e matplotlib não estão
-instalados; não foram produzidos resultados fictícios.
-
-Preserve os créditos do material fornecido e descreva no artigo as mudanças
-realizadas pelo grupo. O pacote final deve conter o Makefile principal,
-as duas versões e os scripts necessários, além do relatório com o nome
-exigido pelo enunciado.
+Para trabalho individual, use `login1` no lugar de `login1-login2`.
