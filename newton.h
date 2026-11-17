@@ -2,9 +2,9 @@
 #define NEWTON_H
 
 #include <stddef.h>
-
 #include "utils.h"
 
+/* Dados lidos da entrada padrão. */
 typedef struct {
     size_t n;
     double x0;
@@ -12,6 +12,7 @@ typedef struct {
     size_t max;
 } Problema;
 
+/* Tempos acumulados durante o método de Newton, em milissegundos. */
 typedef struct {
     size_t passos;
     rtime_t total;
@@ -19,7 +20,7 @@ typedef struct {
     rtime_t sistemas;
 } Medidas;
 
-/* Imprime a trajetória e as medidas. Retorna NULL ou a mensagem de falha. */
+/* Devolve NULL quando termina normalmente; caso contrário, uma mensagem de erro. */
 const char *executa_newton(const Problema *problema);
 
 #endif

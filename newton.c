@@ -1,23 +1,23 @@
-#include "newton.h"
-
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "newton.h"
 #include "broyden.h"
 #include "io.h"
 #include "jacobiana.h"
 #include "sistema_linear.h"
 
+/* O mesmo código funciona com ou sem a biblioteca LIKWID instalada. */
 #ifdef LIKWID_PERFMON
 #include <likwid-marker.h>
 #else
 #define LIKWID_MARKER_INIT ((void)0)
 #define LIKWID_MARKER_THREADINIT ((void)0)
-#define LIKWID_MARKER_REGISTER(regiao) ((void)0)
-#define LIKWID_MARKER_START(regiao) ((void)0)
-#define LIKWID_MARKER_STOP(regiao) ((void)0)
+#define LIKWID_MARKER_REGISTER(nome) ((void)0)
+#define LIKWID_MARKER_START(nome) ((void)0)
+#define LIKWID_MARKER_STOP(nome) ((void)0)
 #define LIKWID_MARKER_CLOSE ((void)0)
 #endif
 
@@ -25,57 +25,72 @@
 #define MARCA_JACOBIANA "Jacobiana"
 #define MARCA_SISTEMA "Sistema_Linear"
 
-enum EstadoPasso {
-    PASSO_CALCULADO,
-    RESIDUO_ACEITO,
-    JACOBIANA_SINGULAR,
-    VALOR_NAO_FINITO
+/* Cada situação tem um resultado diferente para o laço de Newton. */
+enum ResultadoPasso {
+    PASSO_OK,
+    CONVERGIU,
+    ERRO_SISTEMA,
+    ERRO_NUMERICO
 };
 
-enum { NUM_VETORES = 5 };
+#define NUM_VETORES 5
 
-/* Reserva cinco fatias em uma alocação e inicializa as páginas antes da coleta. */
-static double *aloca_trabalho(size_t n, size_t *passo)
+/*
+ * Aloca cinco vetores de uma só vez:
+ * x, rhs, diagonal principal, diagonal inferior e diagonal superior.
+ * Na versão otimizada, cada vetor começa num endereço múltiplo de 64.
+ */
+static double *aloca_vetores(size_t n, size_t *tamVetor)
 {
-    size_t comprimento = n;
-#if !defined(BROYDEN_BASELINE) && !defined(BROYDEN_SEM_ALINHAMENTO)
-    const size_t faixa = BROYDEN_ALINHAMENTO / sizeof(double);
-    if (n > SIZE_MAX - (faixa - 1)) {
-        return NULL;
-    }
-    comprimento = (n + faixa - 1) / faixa * faixa;
-#endif
-    if (comprimento > SIZE_MAX / (NUM_VETORES * sizeof(double))) {
-        return NULL;
-    }
+    size_t tamanho = n;
 
-    const size_t bytes = comprimento * NUM_VETORES * sizeof(double);
 #if !defined(BROYDEN_BASELINE) && !defined(BROYDEN_SEM_ALINHAMENTO)
-    double *memoria = aligned_alloc(BROYDEN_ALINHAMENTO, bytes);
-#else
-    double *memoria = malloc(bytes);
+    size_t bloco = BROYDEN_ALINHAMENTO / sizeof(double);
+    if (n > SIZE_MAX - (bloco - 1))
+        return NULL;
+    tamanho = (n + bloco - 1) / bloco * bloco;
 #endif
-    if (memoria != NULL) {
-        memset(memoria, 0, bytes);
-        *passo = comprimento;
-    }
+
+    if (tamanho > SIZE_MAX / (NUM_VETORES * sizeof(double)))
+        return NULL;
+
+    size_t bytes = tamanho * NUM_VETORES * sizeof(double);
+    double *memoria;
+
+#if !defined(BROYDEN_BASELINE) && !defined(BROYDEN_SEM_ALINHAMENTO)
+    memoria = aligned_alloc(BROYDEN_ALINHAMENTO, bytes);
+#else
+    memoria = malloc(bytes);
+#endif
+
+    if (memoria == NULL)
+        return NULL;
+
+    /* Inicializa uma vez. Não haverá malloc dentro de Newton. */
+    memset(memoria, 0, bytes);
+    *tamVetor = tamanho;
     return memoria;
 }
 
-/* Calcula o candidato a próximo X. Os temporizadores externos incluem o resíduo. */
-static enum EstadoPasso calcula_passo(const Problema *problema, const double *x,
-                                      double *rhs, Tridiagonal j, Medidas *medidas)
+/*
+ * Faz uma atualização de Newton:
+ * 1) calcula -F(x); 2) monta a Jacobiana;
+ * 3) resolve J*passo = -F(x); 4) soma o passo ao x.
+ */
+static enum ResultadoPasso calcula_passo(const Problema *problema, const double *x,
+                                        double *rhs, Tridiagonal j, Medidas *medidas)
 {
-    const size_t n = problema->n;
+    size_t n = problema->n;
+
     broyden_rhs(n, x, rhs);
+
+    /* Com epsilon = 0, executamos as MAX atualizações para o benchmark. */
     if (problema->epsilon > 0.0) {
-        const double residuo = norma_inf(n, rhs);
-        if (!isfinite(residuo)) {
-            return VALOR_NAO_FINITO;
-        }
-        if (residuo <= problema->epsilon) {
-            return RESIDUO_ACEITO;
-        }
+        double erro = norma_inf(n, rhs);
+        if (!isfinite(erro))
+            return ERRO_NUMERICO;
+        if (erro <= problema->epsilon)
+            return CONVERGIU;
     }
 
     rtime_t inicio = timestamp();
@@ -86,35 +101,43 @@ static enum EstadoPasso calcula_passo(const Problema *problema, const double *x,
 
     inicio = timestamp();
     LIKWID_MARKER_START(MARCA_SISTEMA);
-    const bool resolvido = resolve_sistema(n, j, rhs);
+    bool resolveu = resolve_sistema(n, j, rhs);
     LIKWID_MARKER_STOP(MARCA_SISTEMA);
     medidas->sistemas += timestamp() - inicio;
 
-    if (!resolvido) {
-        return JACOBIANA_SINGULAR;
-    }
-    return aplica_passo(n, x, rhs) ? PASSO_CALCULADO : VALOR_NAO_FINITO;
+    if (!resolveu)
+        return ERRO_SISTEMA;
+    if (!aplica_passo(n, x, rhs))
+        return ERRO_NUMERICO;
+
+    return PASSO_OK;
 }
 
-/* Executa e imprime cada passo. Os marcadores acumulam apenas trechos de cálculo. */
+/* Resolve Broyden pelo método de Newton e imprime cada vetor encontrado. */
 const char *executa_newton(const Problema *problema)
 {
-    size_t passo;
-    double *memoria = aloca_trabalho(problema->n, &passo);
-    if (memoria == NULL) {
+    size_t tamVetor;
+    double *memoria = aloca_vetores(problema->n, &tamVetor);
+    if (memoria == NULL)
         return "memória insuficiente para a dimensão solicitada.";
-    }
 
+    /* Cinco vetores dentro do mesmo bloco de memória. */
     double *x = memoria;
-    double *rhs = memoria + passo;
-    const Tridiagonal j = {memoria + 2 * passo, memoria + 3 * passo, memoria + 4 * passo};
-    for (size_t i = 0; i < problema->n; ++i) {
+    double *rhs = memoria + tamVetor;
+    Tridiagonal j = {
+        memoria + 2 * tamVetor,
+        memoria + 3 * tamVetor,
+        memoria + 4 * tamVetor
+    };
+
+    for (size_t i = 0; i < problema->n; i++)
         x[i] = problema->x0;
-    }
+
     imprime_iteracao(problema->n, x, true);
 
     Medidas medidas = {0};
-    enum EstadoPasso estado = PASSO_CALCULADO;
+    enum ResultadoPasso resultado = PASSO_OK;
+
     LIKWID_MARKER_INIT;
     LIKWID_MARKER_THREADINIT;
     LIKWID_MARKER_REGISTER(MARCA_NEWTON);
@@ -122,21 +145,21 @@ const char *executa_newton(const Problema *problema)
     LIKWID_MARKER_REGISTER(MARCA_SISTEMA);
 
     while (medidas.passos < problema->max) {
-        const rtime_t inicio = timestamp();
+        rtime_t inicio = timestamp();
         LIKWID_MARKER_START(MARCA_NEWTON);
-        estado = calcula_passo(problema, x, rhs, j, &medidas);
+        resultado = calcula_passo(problema, x, rhs, j, &medidas);
         LIKWID_MARKER_STOP(MARCA_NEWTON);
         medidas.total += timestamp() - inicio;
 
-        if (estado != PASSO_CALCULADO) {
+        if (resultado != PASSO_OK)
             break;
-        }
 
-        /* A próxima iteração reutiliza o X anterior como área de trabalho. */
+        /* rhs agora contém o novo x. Trocamos os ponteiros, sem copiar vetores. */
         double *anterior = x;
         x = rhs;
         rhs = anterior;
-        ++medidas.passos;
+
+        medidas.passos++;
         imprime_iteracao(problema->n, x, false);
     }
 
@@ -144,11 +167,9 @@ const char *executa_newton(const Problema *problema)
     imprime_medidas(&medidas);
     free(memoria);
 
-    if (estado == JACOBIANA_SINGULAR) {
+    if (resultado == ERRO_SISTEMA)
         return "Jacobiana singular ou pivô final inutilizável.";
-    }
-    if (estado == VALOR_NAO_FINITO) {
+    if (resultado == ERRO_NUMERICO)
         return "resíduo ou atualização não finita.";
-    }
     return NULL;
 }

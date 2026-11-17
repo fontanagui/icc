@@ -3,10 +3,11 @@
 
 #include <stddef.h>
 
+/* Guarda apenas as três diagonais da Jacobiana, sem uma matriz N x N. */
 typedef struct {
     double *diagonal;
-    double *inferior; /* inferior[i] representa J[i+1,i]. */
-    double *superior; /* superior[i] representa J[i,i+1]. */
+    double *inferior;  /* posição i representa a linha i+1 */
+    double *superior;  /* posição i representa a linha i */
 } Tridiagonal;
 
 void constroi_jacobiana(size_t n, const double *x, Tridiagonal j);

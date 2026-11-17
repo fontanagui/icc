@@ -1,18 +1,19 @@
-#include "io.h"
-
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-enum { CAPACIDADE_TOKEN = 128 };
+#include "io.h"
 
-/* Lê um token inteiro. Um token longo demais é consumido e rejeitado. */
-static bool le_token(char token[CAPACIDADE_TOKEN])
+#define TAM_TOKEN 128
+
+/* Lê uma palavra da entrada. Rejeita valores grandes demais. */
+static bool le_token(char token[TAM_TOKEN])
 {
-    size_t comprimento = 0;
+    size_t tam = 0;
     int c;
 
     do {
@@ -20,91 +21,83 @@ static bool le_token(char token[CAPACIDADE_TOKEN])
     } while (c != EOF && isspace(c));
 
     while (c != EOF && !isspace(c)) {
-        if (comprimento < CAPACIDADE_TOKEN - 1) {
-            token[comprimento] = (char)c;
-        }
-        if (comprimento < CAPACIDADE_TOKEN) {
-            ++comprimento;
-        }
+        if (tam < TAM_TOKEN - 1)
+            token[tam] = (char)c;
+        if (tam < TAM_TOKEN)
+            tam++;
         c = getchar();
     }
 
-    if (comprimento == 0 || comprimento >= CAPACIDADE_TOKEN) {
+    if (tam == 0 || tam >= TAM_TOKEN)
         return false;
-    }
 
-    token[comprimento] = '\0';
-    return memchr(token, '\0', comprimento) == NULL;
+    token[tam] = '\0';
+    return memchr(token, '\0', tam) == NULL;
 }
 
-/* Converte um inteiro não negativo que caiba em size_t. */
-static bool le_tamanho(size_t *valor)
+/* Lê um número inteiro não negativo. */
+static bool le_inteiro(size_t *numero)
 {
-    char token[CAPACIDADE_TOKEN];
+    char token[TAM_TOKEN];
     char *fim;
 
-    if (!le_token(token) || token[0] == '-') {
+    if (!le_token(token) || token[0] == '-')
         return false;
-    }
 
     errno = 0;
-    const uintmax_t numero = strtoumax(token, &fim, 10);
-    if (errno == ERANGE || fim == token || *fim != '\0' || numero > SIZE_MAX) {
+    uintmax_t valor = strtoumax(token, &fim, 10);
+    if (errno == ERANGE || fim == token || *fim != '\0' || valor > SIZE_MAX)
         return false;
-    }
 
-    *valor = (size_t)numero;
+    *numero = (size_t)valor;
     return true;
 }
 
-/* Converte um real finito e preserva valores subnormais representáveis. */
-static bool le_real(double *valor)
+/* Lê um double válido, sem aceitar NaN ou infinito. */
+static bool le_real(double *numero)
 {
-    char token[CAPACIDADE_TOKEN];
+    char token[TAM_TOKEN];
     char *fim;
 
-    if (!le_token(token)) {
+    if (!le_token(token))
         return false;
-    }
 
     errno = 0;
-    const double numero = strtod(token, &fim);
-    if (fim == token || *fim != '\0' || !isfinite(numero)
-        || (errno == ERANGE && numero == 0.0)) {
+    double valor = strtod(token, &fim);
+    if (fim == token || *fim != '\0' || !isfinite(valor)
+        || (errno == ERANGE && valor == 0.0))
         return false;
-    }
 
-    *valor = numero;
+    *numero = valor;
     return true;
 }
 
-/* Aceita os quatro parâmetros separados por espaços ou quebras de linha. */
+/* Lê N, x0, epsilon e MAX, nessa ordem. */
 bool le_problema(Problema *problema)
 {
-    return le_tamanho(&problema->n) && problema->n > 0
+    return le_inteiro(&problema->n) && problema->n > 0
         && le_real(&problema->x0)
         && le_real(&problema->epsilon) && problema->epsilon >= 0.0
-        && le_tamanho(&problema->max);
+        && le_inteiro(&problema->max);
 }
 
-/* Escreve um vetor com precisão suficiente para ler de volta cada double. */
+/* Imprime cada incógnita em uma linha e separa as iterações com #. */
 void imprime_iteracao(size_t n, const double *x, bool primeira)
 {
-    if (!primeira) {
+    if (!primeira)
         puts("#");
-    }
 
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; i++)
         printf("x%zu = %.17g\n", i + 1, x[i]);
-    }
 }
 
-/* Mantém o rodapé especificado e fornece a contagem ao coletor via stderr. */
+/* Imprime os três tempos no formato que o professor pediu. */
 void imprime_medidas(const Medidas *medidas)
 {
     printf("###########\n%.12g\n%.12g\n%.12g\n###########\n",
            medidas->total, medidas->jacobianas, medidas->sistemas);
 
+    /* Opcional: o script de benchmark lê a contagem via stderr. */
     const char *coleta = getenv("BROYDEN_STATS");
     if (coleta != NULL && strcmp(coleta, "1") == 0) {
         fprintf(stderr, "BROYDEN_STATS,%zu,%.12g,%.12g,%.12g\n",

@@ -1,69 +1,72 @@
+#include <math.h>
 #include "broyden.h"
 
-#include <math.h>
-
-/* Avalia o termo que depende apenas da incógnita da própria linha. */
-static inline double termo_local(double x)
+/* Calcula (3 - 2*x)*x, que aparece em todas as equações. */
+static inline double termo_broyden(double x)
 {
     return (3.0 - 2.0 * x) * x;
 }
 
-/* Escreve -F(X). O caminho interno otimizado tem vizinhos sempre válidos. */
+/* Calcula -F(x). O vetor rhs será usado para o passo de Newton. */
 void broyden_rhs(size_t n, const double *restrict x, double *restrict rhs)
 {
 #ifdef BROYDEN_BASELINE
-    for (size_t i = 0; i < n; ++i) {
-        const double esquerda = i == 0 ? 0.0 : x[i - 1];
-        const double direita = i + 1 == n ? 0.0 : x[i + 1];
-        const double constante = i + 1 == n ? BROYDEN_LAST_CONSTANT : 1.0;
-        rhs[i] = -(termo_local(x[i]) - esquerda - 2.0 * direita + constante);
+    /* Versão simples: trata as bordas dentro do laço. */
+    for (size_t i = 0; i < n; i++) {
+        double esquerda = (i == 0) ? 0.0 : x[i - 1];
+        double direita = (i == n - 1) ? 0.0 : x[i + 1];
+        double constante = (i == n - 1) ? BROYDEN_LAST_CONSTANT : 1.0;
+
+        rhs[i] = -(termo_broyden(x[i]) - esquerda - 2.0 * direita + constante);
     }
 #else
+    /* Separar as bordas evita vários ifs dentro do laço maior. */
     if (n == 1) {
-        rhs[0] = -(termo_local(x[0]) + BROYDEN_LAST_CONSTANT);
+        rhs[0] = -(termo_broyden(x[0]) + BROYDEN_LAST_CONSTANT);
         return;
     }
 
-    rhs[0] = -(termo_local(x[0]) - 2.0 * x[1] + 1.0);
-    for (size_t i = 1; i < n - 1; ++i) {
-        rhs[i] = -(termo_local(x[i]) - x[i - 1] - 2.0 * x[i + 1] + 1.0);
-    }
-    rhs[n - 1] = -(termo_local(x[n - 1]) - x[n - 2] + BROYDEN_LAST_CONSTANT);
+    rhs[0] = -(termo_broyden(x[0]) - 2.0 * x[1] + 1.0);
+
+    for (size_t i = 1; i < n - 1; i++)
+        rhs[i] = -(termo_broyden(x[i]) - x[i - 1] - 2.0 * x[i + 1] + 1.0);
+
+    rhs[n - 1] = -(termo_broyden(x[n - 1]) - x[n - 2] + BROYDEN_LAST_CONSTANT);
 #endif
 }
 
-/* Calcula max_i |v_i| e sinaliza componentes não finitas com infinito. */
-double norma_inf(size_t n, const double *v)
+/* Procura o maior valor absoluto do vetor (norma infinito). */
+double norma_inf(size_t n, const double *vetor)
 {
-    double maximo = 0.0;
+    double maior = 0.0;
 
-    for (size_t i = 0; i < n; ++i) {
-        const double abs_v = fabs(v[i]);
-        if (!isfinite(abs_v)) {
+    for (size_t i = 0; i < n; i++) {
+        double valor = fabs(vetor[i]);
+
+        if (!isfinite(valor))
             return INFINITY;
-        }
-        if (abs_v > maximo) {
-            maximo = abs_v;
-        }
+        if (valor > maior)
+            maior = valor;
     }
 
-    return maximo;
+    return maior;
 }
 
-/* Transforma o buffer de correções no próximo X e testa a finitude. */
+/* Soma o passo calculado ao x atual, sem usar outro vetor. */
 bool aplica_passo(size_t n, const double *restrict x, double *restrict passo)
 {
 #if !defined(BROYDEN_BASELINE) && !defined(BROYDEN_SEM_ALINHAMENTO)
+    /* Os vetores começam em endereços alinhados: ajuda o compilador a usar AVX. */
     x = __builtin_assume_aligned(x, BROYDEN_ALINHAMENTO);
     passo = __builtin_assume_aligned(passo, BROYDEN_ALINHAMENTO);
 #endif
-    unsigned int finito = 1;
+    unsigned int tudoFinito = 1;
 
-    for (size_t i = 0; i < n; ++i) {
-        const double novo = x[i] + passo[i];
-        passo[i] = novo;
-        finito &= (isfinite(novo) != 0);
+    for (size_t i = 0; i < n; i++) {
+        double novoX = x[i] + passo[i];
+        passo[i] = novoX;
+        tudoFinito &= (isfinite(novoX) != 0);
     }
 
-    return finito != 0;
+    return tudoFinito != 0;
 }

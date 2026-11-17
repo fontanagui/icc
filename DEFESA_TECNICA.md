@@ -30,7 +30,7 @@ Tanto a eliminação quanto a retrocessão percorrem cada linha uma vez. Cada li
 | `constroi_jacobiana()` | A otimizada escreve $N$ derivadas na região medida. As laterais ficam implícitas em Thomas e só são materializadas quando há pivotamento. |
 | `resolve_sistema()` | A verificação de dominância é vetorizável. O recíproco de cada pivô serve à eliminação e à retrocessão, o que reduz as divisões. |
 | `aplica_passo()` | A mesma passagem soma a correção e reduz um indicador inteiro de finitude. A troca de ponteiros evita copiar todo o vetor no fim do passo. |
-| `aloca_trabalho()` | Cada fatia da otimizada começa em um endereço múltiplo de 64 bytes. Os buffers disjuntos permitem declarar `restrict` nos kernels. |
+| `aloca_vetores()` | Cada fatia da otimizada começa em um endereço múltiplo de 64 bytes. Os buffers disjuntos permitem declarar `restrict` nos kernels. |
 
 O GCC 14.2 informou vetores de 32 e 64 bytes nos laços do resíduo interno, na diagonal principal, na checagem de dominância e na atualização. A inspeção de `jacobiana.o` mostrou `vmovapd` para acessos alinhados e de `sistema_linear.o` mostrou divisões escalares `vdivsd`. O pivô da linha seguinte usa o pivô calculado na linha anterior. Na retrocessão, a linha anterior usa a correção da linha seguinte. Essas dependências impedem aplicar diretamente SIMD em quatro ou oito linhas independentes. O código deixa os laços independentes com a vetorização automática do compilador.
 

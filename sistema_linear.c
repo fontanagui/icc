@@ -1,38 +1,47 @@
-#include "sistema_linear.h"
-
 #include <float.h>
 #include <math.h>
+#include "sistema_linear.h"
 
-/* Elimina a banda com pivotamento parcial entre duas linhas adjacentes. */
+/*
+ * Resolve um sistema tridiagonal por eliminação de Gauss.
+ * Quando o elemento de baixo é maior, troca as duas linhas.
+ * Essa alternativa é usada quando Thomas pode não ser seguro.
+ */
 static bool gauss_tridiagonal(size_t n, Tridiagonal j, double *restrict rhs)
 {
-    double *restrict d = j.diagonal;
+    double *restrict diagonal = j.diagonal;
     double *restrict inferior = j.inferior;
     double *restrict superior = j.superior;
 
-    for (size_t i = 0; i + 1 < n; ++i) {
-        const double pivo = d[i];
-        const double abaixo = inferior[i];
-        if (!isfinite(pivo)) {
-            return false;
-        }
+    /* Eliminação: deixa apenas a parte superior da matriz. */
+    for (size_t i = 0; i + 1 < n; i++) {
+        double pivo = diagonal[i];
+        double baixo = inferior[i];
 
-        if (fabs(pivo) >= fabs(abaixo)) {
-            const double fator = abaixo / pivo;
-            d[i + 1] -= fator * superior[i];
+        if (!isfinite(pivo))
+            return false;
+
+        if (fabs(pivo) >= fabs(baixo)) {
+            if (pivo == 0.0)
+                return false;
+
+            double fator = baixo / pivo;
+            diagonal[i + 1] -= fator * superior[i];
             rhs[i + 1] -= fator * rhs[i];
             inferior[i] = 0.0;
         } else {
-            const double fator = pivo / abaixo;
-            const double proxima_diagonal = d[i + 1];
-            d[i] = abaixo;
-            d[i + 1] = superior[i] - fator * proxima_diagonal;
-            superior[i] = proxima_diagonal;
-            const double b = rhs[i];
-            rhs[i] = rhs[i + 1];
-            rhs[i + 1] = b - fator * rhs[i];
+            /* Troca duas linhas sem montar uma matriz completa. */
+            double fator = pivo / baixo;
+            double proximaDiagonal = diagonal[i + 1];
+            double valor = rhs[i];
 
-            /* A troca gera uma segunda superdiagonal na linha já eliminada. */
+            diagonal[i] = baixo;
+            diagonal[i + 1] = superior[i] - fator * proximaDiagonal;
+            superior[i] = proximaDiagonal;
+            rhs[i] = rhs[i + 1];
+            rhs[i + 1] = valor - fator * rhs[i];
+
+            /* A troca pode criar uma segunda diagonal acima da principal. */
             if (i + 2 < n) {
                 inferior[i] = superior[i + 1];
                 superior[i + 1] = -fator * superior[i + 1];
@@ -40,17 +49,19 @@ static bool gauss_tridiagonal(size_t n, Tridiagonal j, double *restrict rhs)
         }
     }
 
-    if (!isfinite(d[n - 1]) || fabs(d[n - 1]) < DBL_MIN) {
+    /* Substituição de baixo para cima. */
+    if (!isfinite(diagonal[n - 1]) || fabs(diagonal[n - 1]) < DBL_MIN)
         return false;
-    }
 
-    rhs[n - 1] /= d[n - 1];
+    rhs[n - 1] /= diagonal[n - 1];
+
     if (n > 1) {
-        rhs[n - 2] = (rhs[n - 2] - superior[n - 2] * rhs[n - 1]) / d[n - 2];
+        rhs[n - 2] = (rhs[n - 2] - superior[n - 2] * rhs[n - 1]) / diagonal[n - 2];
+
         for (size_t i = n - 2; i > 0;) {
-            --i;
-            const double restante = rhs[i] - superior[i] * rhs[i + 1];
-            rhs[i] = (restante - inferior[i] * rhs[i + 2]) / d[i];
+            i--;
+            double resto = rhs[i] - superior[i] * rhs[i + 1];
+            rhs[i] = (resto - inferior[i] * rhs[i + 2]) / diagonal[i];
         }
     }
 
@@ -58,52 +69,65 @@ static bool gauss_tridiagonal(size_t n, Tridiagonal j, double *restrict rhs)
 }
 
 #ifndef BROYDEN_BASELINE
-/* Certifica Thomas: |d_i| >= 3 implica |p_i| >= 2 por indução. */
-static bool admite_thomas(size_t n, const double *diagonal)
+/*
+ * Thomas é seguro quando |diagonal[i]| >= 3 em todas as linhas.
+ * Nesse caso, os pivôs eliminados ficam longe de zero.
+ */
+static bool pode_usar_thomas(size_t n, const double *diagonal)
 {
-    unsigned int valida = 1;
+    unsigned int seguro = 1;
 
-    for (size_t i = 0; i < n; ++i) {
-        const double abs_d = fabs(diagonal[i]);
-        valida &= (abs_d >= 3.0) & (abs_d <= DBL_MAX);
+    for (size_t i = 0; i < n; i++) {
+        double valor = fabs(diagonal[i]);
+        seguro &= (valor >= 3.0) & (valor <= DBL_MAX);
     }
 
-    return valida != 0;
+    return seguro != 0;
 }
 
-/* Normaliza cada linha com um recíproco e reutiliza-o na retrocessão. */
-static void thomas_broyden(size_t n, double *restrict d, double *restrict rhs)
+/*
+ * Thomas adaptado ao Broyden: abaixo da diagonal sempre temos -1,
+ * e acima sempre -2. Assim não precisamos guardar nem percorrer
+ * essas duas diagonais no caso normal.
+ */
+static void thomas_broyden(size_t n, double *restrict diagonal, double *restrict rhs)
 {
-    double inverso = 1.0 / d[0];
-    double reduzido = rhs[0] * inverso;
-    d[0] = 2.0 * inverso;
-    rhs[0] = reduzido;
+    double inverso = 1.0 / diagonal[0];
+    double valor = rhs[0] * inverso;
 
-    for (size_t i = 1; i < n; ++i) {
-        inverso = 1.0 / (d[i] - 2.0 * inverso);
-        reduzido = (rhs[i] + reduzido) * inverso;
-        d[i] = 2.0 * inverso;
-        rhs[i] = reduzido;
+    diagonal[0] = 2.0 * inverso;
+    rhs[0] = valor;
+
+    /* Avança pelas linhas, eliminando as variáveis anteriores. */
+    for (size_t i = 1; i < n; i++) {
+        inverso = 1.0 / (diagonal[i] - 2.0 * inverso);
+        valor = (rhs[i] + valor) * inverso;
+        diagonal[i] = 2.0 * inverso;
+        rhs[i] = valor;
     }
 
-    double proximo = reduzido;
+    /* Volta do fim para o começo, encontrando todas as correções. */
+    double proximo = valor;
     for (size_t i = n - 1; i > 0;) {
-        --i;
-        proximo = rhs[i] + d[i] * proximo;
+        i--;
+        proximo = rhs[i] + diagonal[i] * proximo;
         rhs[i] = proximo;
     }
 }
 #endif
 
-/* Seleciona o caminho certificado ou o pivô parcial na representação em banda. */
+/* Escolhe o método mais rápido que seja seguro para a Jacobiana atual. */
 bool resolve_sistema(size_t n, Tridiagonal j, double *rhs)
 {
 #ifndef BROYDEN_BASELINE
-    if (admite_thomas(n, j.diagonal)) {
+    if (pode_usar_thomas(n, j.diagonal)) {
         thomas_broyden(n, j.diagonal, rhs);
         return true;
     }
+
+    /* Quando Thomas não serve, precisamos preencher as laterais. */
     preenche_laterais(n, j);
 #endif
+
     return gauss_tridiagonal(n, j, rhs);
 }

@@ -1,4 +1,6 @@
-# Broyden tridiagonal · CI1164
+# Broyden tridiagonal · CI1164 — versão simplificada
+
+**Comece por [`GUIA_CODIGO.md`](GUIA_CODIGO.md).** Os arquivos C foram reescritos com funções e variáveis mais fáceis de acompanhar, inspirados na organização do projeto The Boys. As otimizações de alto desempenho foram preservadas.
 
 O programa resolve o sistema não linear de Broyden com Newton em dupla precisão. A execução oficial usa `./broyden`. Cada atualização custa tempo e memória de trabalho proporcionais a `N`.
 
@@ -47,7 +49,7 @@ printf '1000\n-1\n0\n25\n' | \
 
 As pastas `ambiente` e `bruto` da campanha registram topologia, flags, fórmulas de métricas e a saída original da coleta. `medicoes.csv` tem uma linha para cada repetição e região. `resumo.csv` registra média, mediana, desvio-padrão, mínimo e máximo. `campanha.json` indica quais grupos foram concluídos. Uma campanha com as quatro famílias de métricas produz doze gráficos. As legendas distinguem as versões e, nas curvas de FLOPS, os grupos DP e AVX.
 
-Para reproduzir ensaios isolados de otimização, `FP_CONTRACT=off` desativa a contração FMA e `EXTRA_CPPFLAGS=-DBROYDEN_SEM_ALINHAMENTO` usa `malloc` convencional na otimizada. Use a mesma CPU e os mesmos parâmetros em todas as medições comparadas.
+Ao mudar flags de compilação ou LAST_CONSTANT, execute `make clean` antes de recompilar (o coletor usa `make -B`). Para reproduzir ensaios isolados de otimização, `FP_CONTRACT=off` desativa a contração FMA e `EXTRA_CPPFLAGS=-DBROYDEN_SEM_ALINHAMENTO` usa `malloc` convencional na otimizada. Use a mesma CPU e os mesmos parâmetros em todas as medições comparadas.
 
 ## Organização dos arquivos
 
@@ -62,6 +64,7 @@ Para reproduzir ensaios isolados de otimização, `FP_CONTRACT=off` desativa a c
 | `benchmark/` | Coleta, análise, geração de gráficos e empacotamento |
 | `relatorio/` | Artigo editável em LaTeX e figuras da campanha incorporada |
 | `DEFESA_TECNICA.md` | Roteiro para a defesa oral |
+| `GUIA_CODIGO.md` | Explicação simples do fluxo e das otimizações |
 
 ## Fechar o artigo e o ZIP
 

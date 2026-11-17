@@ -83,7 +83,7 @@ Trecho & Técnica e efeito esperado \\
 \texttt{constroi\_jacobiana} & Vetores contíguos e diagonal analítica. A dimensão $N$ exige $N$ escritas de coeficientes no caminho de Thomas. A baseline escreve $3N-2$. \\
 \texttt{resolve\_sistema} & Fora do caminho com trocas, as diagonais laterais são constantes implícitas. A reutilização de $1/p_i$ elimina as divisões durante a retrocessão. \\
 \texttt{aplica\_passo} & Atualização e checagem de finitude em uma passagem. A troca de ponteiros reutiliza o vetor anterior como área de trabalho. \\
-\texttt{aloca\_trabalho} & Uma alocação antes do laço com fatias alinhadas a 64 bytes na versão otimizada. O uso de \texttt{restrict} expressa que as fatias lidas e escritas são disjuntas. \\
+\texttt{aloca\_vetores} & Uma alocação antes do laço com fatias alinhadas a 64 bytes na versão otimizada. O uso de \texttt{restrict} expressa que as fatias lidas e escritas são disjuntas. \\
 \bottomrule
 \end{tabularx}
 \caption{Otimizações aplicadas aos trechos computacionais.}
