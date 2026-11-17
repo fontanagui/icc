@@ -1,0 +1,9 @@
+# Produtos de compilação e caches
+**/build/
+**/broyden
+*.o
+*.d
+__pycache__/
+*.pyc
+# Resultados locais: mantenha os selecionados para o artigo separadamente.
+/resultados/
