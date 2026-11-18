@@ -1,0 +1,76 @@
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c resolucaoSNL.c -o .build/otim/resolucaoSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c Entrada.c -o .build/otim/Entrada.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c NewtonSNL.c -o .build/otim/NewtonSNL.o
+NewtonSNL.c:118:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:113:18: optimized: basic block part vectorized using 32 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c SistNaoLinear.c -o .build/otim/SistNaoLinear.o
+SistNaoLinear.c:31:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:31:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c EliminacaoGauss.c -o .build/otim/EliminacaoGauss.o
+EliminacaoGauss.c:13:24: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:84:20: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:84:20: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c utils.c -o .build/otim/utils.o
+utils.c: In function ‘prnVetor’:
+utils.c:42:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function ‘prnMatriz’:
+utils.c:48:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+gcc .build/otim/resolucaoSNL.o .build/otim/Entrada.o .build/otim/NewtonSNL.o .build/otim/SistNaoLinear.o .build/otim/EliminacaoGauss.o .build/otim/utils.o -lm -o broyden
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c resolucaoSNL.c -o .build/base/resolucaoSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c Entrada.c -o .build/base/Entrada.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c NewtonSNL.c -o .build/base/NewtonSNL.o
+NewtonSNL.c:118:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:113:18: optimized: basic block part vectorized using 32 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c SistNaoLinear.c -o .build/base/SistNaoLinear.o
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c EliminacaoGauss.c -o .build/base/EliminacaoGauss.o
+EliminacaoGauss.c:13:24: optimized: loop vectorized using 32 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c utils.c -o .build/base/utils.o
+utils.c: In function ‘prnVetor’:
+utils.c:42:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function ‘prnMatriz’:
+utils.c:48:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+gcc .build/base/resolucaoSNL.o .build/base/Entrada.o .build/base/NewtonSNL.o .build/base/SistNaoLinear.o .build/base/EliminacaoGauss.o .build/base/utils.o -lm -o broyden_baseline
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1 -DBROYDEN_SEM_ALINHAMENTO -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -I. tests/test_kernels.c .build/otim/Entrada.o .build/otim/NewtonSNL.o .build/otim/SistNaoLinear.o .build/otim/EliminacaoGauss.o .build/otim/utils.o -lm -o .build/test_kernels
+tests/test_kernels.c:69:20: optimized: loop vectorized using 32 byte vectors
+tests/test_kernels.c:51:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:56:22: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:63:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:53:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:78:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:79:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:80:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:14:25: optimized: basic block part vectorized using 32 byte vectors
+./.build/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+python3 tests/test_solver.py 1 ./broyden ./broyden_baseline
+broyden: 22 casos válidos, max |F| no ensaio = 1.11e-15
+broyden_baseline: 22 casos válidos, max |F| no ensaio = 1.11e-15
+As duas versões concordam nos vetores finais.
+python3 tests/test_likwid_parser.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK

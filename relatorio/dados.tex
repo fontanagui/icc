@@ -2,29 +2,48 @@
 \newcommand{\ConstanteUltima}{1}
 \newcommand{\Repeticoes}{10}
 \newcommand{\EstadoRelatorio}{Ensaio preliminar}
-\newcommand{\ResumoMedido}{Para $N=20000$, o tempo médio total passou de 6,249 para 2,761 ms no ensaio preliminar, com razão de 2,26 entre os tempos. A caracterização por contadores LIKWID está pendente.}
-\newcommand{\AmbienteMedido}{As execuções foram fixadas na CPU lógica 2. O sistema identificou o processador AMD EPYC 9V45 96-Core Processor. O compilador foi \emph{gcc (Debian 14.2.0-19) 14.2.0}. A detecção de arquitetura do GCC selecionou \texttt{znver5}. Os recursos SIMD expostos incluem AVX, AVX2, AVX-512, FMA. O ambiente expõe 9 CPUs lógicas e a indicação de hipervisor. A hierarquia física de cache, a frequência efetiva e as condições de isolamento ficam indeterminadas para esta coleta. }
+\newcommand{\ResumoMedido}{Para $N=20000$, o tempo médio total passou de 8,209 para 3,121 ms no ensaio preliminar, com razão de 2,63 entre os tempos. A caracterização por contadores LIKWID está pendente.}
+\newcommand{\AmbienteMedido}{As execuções foram fixadas na CPU lógica 2. O sistema identificou o processador Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz. O compilador foi \emph{gcc (Debian 14.2.0-19) 14.2.0}. O LIKWID exibiu a classificação \emph{Intel Coffeelake processor}. A topologia exposta inclui 1 soquete(s), 4 núcleos por soquete, 1 threads por núcleo. O sistema reportou L1d = 128 KiB (4 instances), L1i = 128 KiB (4 instances), L2 = 1 MiB (4 instances), L3 = 6 MiB (1 instance). Os recursos SIMD expostos incluem AVX, AVX2, FMA. A faixa de frequência reportada foi 800 a 3800 MHz. O governador de frequência registrado foi \texttt{powersave}. O coletor registrou likwid-topology -- Version 5.4.1 (commit: 0123456789).}
 \newcommand{\ResultadosMedidos}{%
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Região & Básica ant. & Básica rev. & Otim. ant. & Otim. rev.\\
+\midrule
+Método de Newton & 9,902 & 8,209 & 4,654 & 3,121\\
+Construção da Jacobiana & 0,386 & 0,346 & 0,312 & 0,360\\
+Solução do sistema linear & 8,292 & 6,843 & 3,498 & 2,003\\
+\bottomrule
+\end{tabular}
+\caption{Tempos médios em ms para $N=20000$ e 25 passos.}
+\end{table}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\linewidth]{speedup-revisao.pdf}
+\caption{Razão entre os tempos médios da versão original e da revisada.}
+\end{figure}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\linewidth]{tempo-newton_total.pdf}
 \caption{Tempo de execução para o método de Newton. A faixa sombreada indica um desvio-padrão em torno da média.}
 \end{figure}
-Para $N=20000$, a baseline mediu 6,249 e a otimizada, 2,761. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0143 e 0,0071 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 2,26. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 2,02. A curva agrega resíduo, Jacobiana, resolução linear e atualização. Em $N=32$, a baseline teve média de 0,0143 ms e mediana de 0,0117 ms. O desvio-padrão equivaleu a 57\% da média.
+Para $N=20000$, a baseline mediu 8,209 e a otimizada, 3,121. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0167 e 0,0083 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 2,63. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 2,11. A curva agrega resíduo, Jacobiana, resolução linear e atualização. Em $N=256$, a baseline teve média de 0,1227 ms e mediana de 0,0932 ms. O desvio-padrão equivaleu a 70\% da média.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\linewidth]{tempo-jacobiana.pdf}
 \caption{Tempo de execução para a construção da Jacobiana. A faixa sombreada indica um desvio-padrão em torno da média.}
 \end{figure}
-Para $N=20000$, a baseline mediu 0,354 e a otimizada, 0,053. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0007 e 0,0007 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 6,69. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 2,75. A menor região é sensível à resolução do relógio e ao custo de chamada. Em $N=10000$, a baseline teve média de 0,2568 ms e mediana de 0,0727 ms. O desvio-padrão equivaleu a 225\% da média.
+Para $N=20000$, a baseline mediu 0,346 e a otimizada, 0,360. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0009 e 0,0008 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 0,96. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 2,65. A menor região é sensível à resolução do relógio e ao custo de chamada. Em $N=1000$, a baseline teve média de 0,0203 ms e mediana de 0,0167 ms. O desvio-padrão equivaleu a 78\% da média.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.88\linewidth]{tempo-sistema_linear.pdf}
 \caption{Tempo de execução para a solução do sistema linear. A faixa sombreada indica um desvio-padrão em torno da média.}
 \end{figure}
-Para $N=20000$, a baseline mediu 5,448 e a otimizada, 2,606. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0086 e 0,0043 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 2,09. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 1,99. A eliminação e a retrocessão mantêm dependências entre linhas vizinhas. Em $N=10000$, a baseline teve média de 3,1685 ms e mediana de 2,7372 ms. O desvio-padrão equivaleu a 41\% da média.
+Para $N=20000$, a baseline mediu 6,843 e a otimizada, 2,003. Os valores estão em ms para 25 passos. Em $N=32$, as médias foram 0,0123 e 0,0046 ms, respectivamente. O quociente de tempos baseline/otimizada em $N=20000$ foi 3,42. Na otimizada, dobrar $N$ de 10000 para 20000 multiplicou o tempo por 1,93. A eliminação e a retrocessão mantêm dependências entre linhas vizinhas. Em $N=256$, a baseline teve média de 0,1067 ms e mediana de 0,0810 ms. O desvio-padrão equivaleu a 71\% da média.
 
 \subsection{Contadores pendentes}
 A campanha ainda precisa de séries completas para \texttt{MEM}, \texttt{L2CACHE}, \texttt{FLOPS\_DP}, \texttt{FLOPS\_AVX}. 

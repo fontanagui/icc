@@ -1,0 +1,69 @@
+$ make -B LAST_CONSTANT=1 likwid
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c resolucaoSNL.c -o .build/likwid/resolucaoSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c Entrada.c -o .build/likwid/Entrada.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c NewtonSNL.c -o .build/likwid/NewtonSNL.o
+NewtonSNL.c:80:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:80:20: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:123:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:118:18: optimized: basic block part vectorized using 32 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c SistNaoLinear.c -o .build/likwid/SistNaoLinear.o
+SistNaoLinear.c:31:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:31:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c EliminacaoGauss.c -o .build/likwid/EliminacaoGauss.o
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:9:24: optimized:  loop versioned for vectorization because of possible aliasing
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 16 byte vectors
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:9:24: optimized:  loop versioned for vectorization because of possible aliasing
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 16 byte vectors
+EliminacaoGauss.c:101:20: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:101:20: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c utils.c -o .build/likwid/utils.o
+utils.c: In function 'prnVetor':
+utils.c:42:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function 'prnMatriz':
+utils.c:48:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+gcc -L/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/lib/x86_64-linux-gnu .build/likwid/resolucaoSNL.o .build/likwid/Entrada.o .build/likwid/NewtonSNL.o .build/likwid/SistNaoLinear.o .build/likwid/EliminacaoGauss.o .build/likwid/utils.o -lm -llikwid -pthread -o broyden_likwid
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c resolucaoSNL.c -o .build/base_likwid/resolucaoSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c Entrada.c -o .build/base_likwid/Entrada.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c NewtonSNL.c -o .build/base_likwid/NewtonSNL.o
+NewtonSNL.c:80:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:80:20: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:123:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:118:18: optimized: basic block part vectorized using 32 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c SistNaoLinear.c -o .build/base_likwid/SistNaoLinear.o
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c EliminacaoGauss.c -o .build/base_likwid/EliminacaoGauss.o
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:9:24: optimized:  loop versioned for vectorization because of possible aliasing
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 16 byte vectors
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:9:24: optimized:  loop versioned for vectorization because of possible aliasing
+EliminacaoGauss.c:9:24: optimized: loop vectorized using 16 byte vectors
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -DLIKWID_PERFMON -I/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/include -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -MMD -MP -c utils.c -o .build/base_likwid/utils.o
+utils.c: In function 'prnVetor':
+utils.c:42:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function 'prnMatriz':
+utils.c:48:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+gcc -L/home/bcc/psa25/Downloads/ICC/icc/experimentos/verificacao-inicial/likwid-portatil/usr/lib/x86_64-linux-gnu .build/base_likwid/resolucaoSNL.o .build/base_likwid/Entrada.o .build/base_likwid/NewtonSNL.o .build/base_likwid/SistNaoLinear.o .build/base_likwid/EliminacaoGauss.o .build/base_likwid/utils.o -lm -llikwid -pthread -o broyden_baseline_likwid

@@ -1,7 +1,7 @@
-# Status dos dados e relatório
+# Estado do relatório
 
-Os dados experimentais, gráficos e PDF conservados neste ZIP foram feitos com a versão anterior do projeto. Servem como histórico e referência metodológica; **não** comprovam o desempenho desta reescrita.
+O [artigo da revisão](experimentos/campanha-final/artigo-revisao.pdf) e a [campanha atual](experimentos/campanha-final/) apresentam medições de tempo das versões original e revisada no Intel Core i5-7500. O PDF da raiz e os CSV em `dados/` são históricos.
 
-Os testes de correção, sanitizers e um ensaio rápido de desempenho foram feitos nesta versão. Antes da entrega, repita a campanha de LIKWID na máquina apropriada, gere os 12 gráficos pedidos e atualize o artigo científico com os números efetivamente medidos.
+As sondas do LIKWID 5.4.1 compilaram os binários instrumentados e leram a topologia. A máquina bloqueou os contadores de hardware com `perf_event_paranoid=3`. Os [logs da campanha](experimentos/campanha-final/ambiente/) registram as tentativas. A análise atual tem três gráficos de tempo e um de speedup. A cobertura de hardware e a contagem oficial de gráficos dependem da campanha em ambiente com contadores e da conferência do enunciado.
 
-Confira também a imagem oficial do enunciado para a última equação: a função tridiagonal clássica termina com `+1`, enquanto o script `broyden.sh` fornecido não coloca essa constante. O `Makefile` usa `LAST_CONSTANT=1` por padrão; pode receber `LAST_CONSTANT=0` caso essa seja a definição do professor.
+A última equação segue provisoriamente com `+1`. O gerador do primeiro commit omite o termo e a cópia local o inclui. Antes da entrega, confira a figura oficial, ajuste a constante se necessário e preencha `\Autores` em `relatorio/artigo.tex`.

@@ -1,78 +1,58 @@
-# Broyden tridiagonal · CI1164 — versão simplificada
+# Broyden tridiagonal · CI1164
 
-**Comece por [`GUIA_CODIGO.md`](GUIA_CODIGO.md).** Este programa continua resolvendo as equações de **Broyden por Newton**. A organização usa funções como `calcF`, `calcJ`, `triang`, `retrossubs`, `eliminacaoGauss` e `newton`, inspiradas nos exemplos do professor. A formatação segue o projeto The Boys. As otimizações de alto desempenho foram preservadas.
+O executável `broyden` resolve o sistema não linear tridiagonal de Broyden pelo método de Newton. Um passo calcula `b = −F(X)` e a diagonal analítica de `J(X)`, resolve `J(X) S = b` e soma `S` a `X`. O custo por passo e a memória de trabalho são O(N).
 
-O programa resolve o sistema não linear de Broyden com Newton em dupla precisão. A execução oficial usa `./broyden`. Cada atualização custa tempo e memória de trabalho proporcionais a `N`.
+## Compilar e testar
 
-## Compilar, executar e testar
-
-Requer Linux x86-64 com AVX, GCC e GNU Make. Python 3 é usado nos testes.
+Requer Linux x86-64 com AVX, GCC e GNU Make. Os testes da interface e os scripts de coleta usam Python 3.
 
 ```bash
 make
-printf '32\n-1\n1e-12\n25\n' | ./broyden
 make baseline
-make test
-make sanitize
+printf '32\n-1\n1e-12\n25\n' | ./broyden
+make test LAST_CONSTANT=1
+make test LAST_CONSTANT=0
+make sanitize LAST_CONSTANT=1
 ```
 
-A entrada é `N x0 epsilon MAX`, separada por espaços ou quebras de linha. `x0` é o valor inicial comum. Cada bloco de `stdout` contém `x1` a `xN`. Os blocos vêm separados por `#`. O rodapé contém o tempo total, o da Jacobiana e o da solução linear, em milissegundos. Um diagnóstico de falha é enviado a `stderr` com status de saída não zero.
+A entrada tem quatro valores separados por espaços ou quebras de linha, na ordem `N x0 epsilon MAX`. O programa imprime o vetor inicial e o resultado de cada atualização em linhas `x1 = valor`, com `#` entre vetores. O rodapé contém o total computacional, o tempo da Jacobiana e o tempo da solução linear, em milissegundos. Diagnósticos ficam em `stderr`.
 
-O valor `epsilon=0` faz o laço executar até `MAX`, salvo falha numérica. Com `epsilon>0`, o programa aceita um iterado se `max(abs(F_i)) <= epsilon`. Com `MAX=0`, imprime o vetor inicial e três tempos iguais a zero. `make clean` remove executáveis e arquivos de compilação.
+Com `epsilon > 0`, a parada usa `max(abs(F_i)) <= epsilon`, ou o limite de iterações. Com `epsilon = 0`, o laço executa até `MAX`, sujeito a falha numérica. Com `MAX = 0`, os três tempos são zero.
 
 ### Última equação
 
-O padrão `LAST_CONSTANT=1` é a definição clássica, com `+1` na última equação. O gerador de expressões fornecido omite a constante nessa linha. A imagem do Moodle tem acesso restrito. Confira a última equação do enunciado antes de entregar. Se a figura usar a variante do gerador, compile e teste com `make test LAST_CONSTANT=0`, e inclua `LAST_CONSTANT=0` na coleta. Se essa for a variante exigida, defina `LAST_CONSTANT ?= 0` no Makefile antes de empacotar, para alinhar o `make` padrão ao corretor.
+O primeiro commit preserva um [gerador sem a constante final](https://github.com/fontanagui/icc/blob/7841b6c/referencia/broyden.sh). A cópia local do gerador em Downloads contém `+1` na última equação. A figura oficial é necessária para decidir a variante da correção. O padrão provisório é `LAST_CONSTANT=1`, usado nos experimentos. `LAST_CONSTANT=0` seleciona a variante sem a constante. O Makefile recompila ao mudar a opção.
 
-## Campanha com LIKWID
+## Campanha reproduzível
 
-Use uma máquina física conforme o enunciado, com `likwid-perfctr`, `likwid-topology`, cabeçalhos do LIKWID e `liblikwid`. Matplotlib é necessário para as figuras e uma instalação LaTeX com `pdflatex` e Latin Modern para produzir o artigo. Em Linux Mint e Ubuntu, os pacotes `likwid`, `python3-matplotlib`, `texlive-latex-extra` e `lmodern` fornecem essas dependências nas distribuições que os disponibilizam.
+A campanha usa `x0=-1`, `epsilon=0`, 25 passos, 12 tamanhos até 20.000 e dez repetições por tamanho e versão após um aquecimento. Use o mesmo valor de `LAST_CONSTANT` em todas as versões da comparação.
 
 ```bash
+mkdir -p experimentos/fonte-original
+tar -xzf experimentos/fonte-original-fbb6084.tar.gz -C experimentos/fonte-original
+
 likwid-topology -g -c
 likwid-perfctr -a
 make likwid
-make benchmark BENCH_ARGS='--out resultados'
-python3 benchmark/analise.py resultados --relatorio relatorio
-make relatorio-pdf
+make benchmark BENCH_ARGS='--out resultados/rodada --cpu 2 --original experimentos/fonte-original'
+python3 benchmark/analise.py resultados/rodada --relatorio relatorio
+make relatorio-pdf RELATORIO_PDF=resultados/rodada/artigo-broyden.pdf
 ```
 
-Por padrão, a coleta escolhe a primeira CPU lógica da afinidade do processo. Para fixar outra CPU física apropriada, acrescente `--cpu ID` a `BENCH_ARGS` com o identificador lógico indicado por `likwid-topology`. O diretório informado em `--out` deve estar disponível para criação, para manter cada campanha em uma pasta própria. O coletor recompila com GCC na máquina de testes, fixa cada processo naquele núcleo, faz um aquecimento e coleta dez repetições para ambas as versões. Todos os resultados válidos usam `x0=-1`, `epsilon=0` e 25 atualizações. Use `--so-tempo` para executar apenas a coleta de tempos. A execução completa tenta as alternativas `L3`, `L1CACHE` e `CACHE` quando necessário e sinaliza grupos pendentes.
+Escolha em `--cpu` um ID da afinidade local. Omita a opção para usar o primeiro ID disponível. O diretório `--out` é novo a cada campanha. `--original` recompila os dois binários originais e intercala suas execuções com as revisadas. `--so-tempo` coleta apenas os relógios do programa e de parede. Para cabeçalhos e bibliotecas LIKWID fora dos caminhos padrão, configure `LIKWID_CPPFLAGS` e `LIKWID_LDFLAGS`. Com contadores indisponíveis, a campanha guarda o diagnóstico, coleta tempos e retorna 2. O relatório requer Matplotlib e uma instalação LaTeX com Latin Modern.
 
-Para uma instalação fora dos caminhos padrão, informe `LIKWID_CPPFLAGS=-I/caminho/include` e `LIKWID_LDFLAGS=-L/caminho/lib` no Makefile ou no ambiente. Para confirmar a instrumentação isoladamente, esta invocação salva o relatório do LIKWID à parte da solução. O exemplo pressupõe a CPU lógica 0 e o grupo `FLOPS_DP` disponíveis.
+`medicoes.csv` contém as amostras. `resumo.csv` registra média, mediana, desvio-padrão, mínimo e máximo. `comparacao.csv` registra o speedup por região e dimensão. `parede_ms` mede o processo completo com a saída descartada, incluindo formatação e inicialização. `ambiente/` e `bruto/` contêm comandos, flags, topologia e o material bruto. Com os grupos previstos disponíveis, a análise produz 12 gráficos de tempo, banda, faltas e FLOPS. O gráfico adicional de speedup requer `--original`.
 
-```bash
-printf '1000\n-1\n0\n25\n' | \
-  BROYDEN_STATS=1 likwid-perfctr -C 0 -g FLOPS_DP -m -O \
-  -o perfctr.csv ./broyden_likwid >/dev/null
-```
+## Código e resultados
 
-As pastas `ambiente` e `bruto` da campanha registram topologia, flags, fórmulas de métricas e a saída original da coleta. `medicoes.csv` tem uma linha para cada repetição e região. `resumo.csv` registra média, mediana, desvio-padrão, mínimo e máximo. `campanha.json` indica quais grupos foram concluídos. Uma campanha com as quatro famílias de métricas produz doze gráficos. As legendas distinguem as versões e, nas curvas de FLOPS, os grupos DP e AVX.
-
-Ao mudar flags de compilação ou LAST_CONSTANT, execute `make clean` antes de recompilar (o coletor usa `make -B`). Para reproduzir ensaios isolados de otimização, `FP_CONTRACT=off` desativa a contração FMA e `EXTRA_CPPFLAGS=-DBROYDEN_SEM_ALINHAMENTO` usa `malloc` convencional na otimizada. Use a mesma CPU e os mesmos parâmetros em todas as medições comparadas.
-
-## Organização dos arquivos
-
-| Arquivo ou pasta | Conteúdo |
+| Arquivo | Responsabilidade |
 |---|---|
-| `resolucaoSNL.c`, `Entrada.c` | Programa principal, leitura dos dados e impressão |
-| `NewtonSNL.c` | Alocação dos vetores, método de Newton, tempos e LIKWID |
-| `SistNaoLinear.c` | Cálculo de `F(X)`, Jacobiana e atualização de `X` |
-| `EliminacaoGauss.c` | Eliminação de Gauss para a Jacobiana tridiagonal |
-| `utils.c`, `utils.h` | Módulos fornecidos pela disciplina, incluindo `timestamp()` |
-| `tests/` | Testes numéricos, da interface e dos formatos do LIKWID |
-| `benchmark/` | Coleta, análise, geração de gráficos e empacotamento |
-| `relatorio/` | Artigo editável em LaTeX e figuras da campanha incorporada |
-| `DEFESA_TECNICA.md` | Roteiro para a defesa oral |
-| `GUIA_CODIGO.md` | Explicação simples do fluxo e das otimizações |
+| `resolucaoSNL.c` e `Entrada.c` | Entrada, saída e status de execução |
+| `NewtonSNL.c` | Alocação, iterações, parada, relógios e marcadores |
+| `SistNaoLinear.c` | Lado direito, diagonal analítica, norma e atualização |
+| `EliminacaoGauss.c` | Eliminação tridiagonal e retrossubstituição |
+| `tests/` | Referência densa, resíduos, interface, kernels e parser LIKWID |
+| `benchmark/` | Coleta e análise experimental |
+| `relatorio/` | Fonte LaTeX e figuras |
 
-## Fechar o artigo e o ZIP
-
-O PDF incluído e seus dados são da implementação anterior. A reescrita foi validada numericamente, mas os resultados históricos devem ser novamente medidos antes de apresentá-los como resultados desta versão. O PDF incluído apresenta um ensaio preliminar de tempo em ambiente virtual. Os nove gráficos de hardware dependem da coleta em máquina compatível. Depois de rodar `benchmark/analise.py`, revise as figuras e a interpretação dos eventos no artigo. Preencha `\Autores` em `relatorio/artigo.tex` com os integrantes e os logins. Em seguida, recompile o PDF e passe seu login, ou os dois separados por hífen, para o empacotador. O empacotador usa a mesma base no ZIP, na pasta interna e no PDF interno.
-
-```bash
-make relatorio-pdf
-python3 benchmark/empacota.py login1-login2 --dados resultados
-```
-
-Para trabalho individual, use `login1` no lugar de `login1-login2`.
+O [guia do código](GUIA_CODIGO.md) segue a execução da `main` à solução. O [registro de otimizações](REGISTRO_OTIMIZACOES.md) explica os estágios intermediários e relaciona os resultados aos fontes. O [artigo da revisão](experimentos/campanha-final/artigo-revisao.pdf) usa a campanha desta máquina. Os dados anteriores estão em `dados/` e no PDF histórico da raiz.

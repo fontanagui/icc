@@ -1,3 +1,4 @@
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,14 +22,14 @@ static int testaJacobiana( void ) {
         double antigo = X[j];
 
         X[j] = antigo + h;
-        calcF( mais, X, N );
+        calcMenosF( mais, X, N );
         X[j] = antigo - h;
-        calcF( menos, X, N );
+        calcMenosF( menos, X, N );
         X[j] = antigo;
 
         for ( i = 0; i < N; i++ ) {
             double esperado = 0.0;
-            double derivada = ( mais[i] - menos[i] ) / ( 2.0 * h );
+            double derivada = ( menos[i] - mais[i] ) / ( 2.0 * h );
 
             if ( i == j )
                 esperado = diagonal[i];
@@ -37,7 +38,7 @@ static int testaJacobiana( void ) {
             else if ( j + 1 == i )
                 esperado = -1.0;
 
-            if ( fabs( derivada - esperado ) > 1e-9 )
+            if ( !isfinite( derivada ) || fabs( derivada - esperado ) > 1e-9 )
                 return 0;
         }
     }
@@ -46,27 +47,27 @@ static int testaJacobiana( void ) {
 }
 
 /* Monta um sistema com solução conhecida para testar a eliminação de Gauss. */
-static int testaGauss( const double a[N] ) {
+static int testaGauss( const double *a, size_t n ) {
     size_t i;
     const double esperado[N] = {2.0, -1.0, 0.5, -3.0, 4.0};
-    double principal[N], inferior[N], superior[N], b[N];
-    SistLinear_t SL = { N, principal, inferior, superior, b };
+    double principal[N], superior[N], segunda[N], b[N];
+    SistLinear_t SL = { n, principal, superior, segunda, b };
 
-    for ( i = 0; i < N; i++ ) {
+    for ( i = 0; i < n; i++ ) {
         principal[i] = a[i];
         b[i] = a[i] * esperado[i];
 
         if ( i > 0 )
             b[i] -= esperado[i - 1];
 
-        if ( i + 1 < N )
+        if ( i + 1 < n )
             b[i] -= 2.0 * esperado[i + 1];
     }
 
     if ( !eliminacaoGauss( &SL ) )
         return 0;
 
-    for ( i = 0; i < N; i++ ) {
+    for ( i = 0; i < n; i++ ) {
         if ( !isfinite( b[i] ) || fabs( b[i] - esperado[i] ) > 1e-12 )
             return 0;
     }
@@ -74,13 +75,37 @@ static int testaGauss( const double a[N] ) {
     return 1;
 }
 
+static int testaPivoFinal( void ) {
+    double principal[2] = {1.0, 2.0}, superior[2], segunda[2], b[2] = {0.0, 0.0};
+    SistLinear_t SL = {2, principal, superior, segunda, b};
+
+    /* O determinante da matriz de ordem dois é zero. */
+    if ( eliminacaoGauss( &SL ) )
+        return 0;
+
+    /* Uma divisão direta também resolve um pivô subnormal. */
+    SL.n = 1;
+    principal[0] = DBL_TRUE_MIN;
+    b[0] = DBL_TRUE_MIN;
+
+    return eliminacaoGauss( &SL ) && b[0] == 1.0;
+}
+
 int main( void ) {
-    const double dominante[N] = {-6.0, 5.0, -9.0, 3.0, 4.0};
+    const double dominante[N] = {-3.0, 3.0, -3.0, 3.0, -3.0};
     const double comTrocas[N] = {0.0, 2.0, 0.0, 2.0, 3.0};
     const double quaseZero[N] = {1e-16, 2.0, 1e-16, -2.0, 3.0};
 
-    if ( !testaJacobiana() || !testaGauss( dominante ) ||
-         !testaGauss( comTrocas ) || !testaGauss( quaseZero ) ) {
+    for ( size_t n = 1; n <= N; n++ ) {
+        if ( !testaGauss( dominante, n ) ) {
+            fprintf( stderr, "Falha no sistema dominante de dimensão %zu.\n", n );
+
+            return EXIT_FAILURE;
+        }
+    }
+
+    if ( !testaJacobiana() || !testaGauss( comTrocas, N ) ||
+         !testaGauss( quaseZero, N ) || !testaPivoFinal() ) {
         fputs( "Falha nos testes de Jacobiana e Gauss.\n", stderr );
 
         return EXIT_FAILURE;

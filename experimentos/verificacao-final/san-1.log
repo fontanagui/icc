@@ -1,0 +1,46 @@
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c resolucaoSNL.c -o .build/san/resolucaoSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c Entrada.c -o .build/san/Entrada.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c NewtonSNL.c -o .build/san/NewtonSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c SistNaoLinear.c -o .build/san/SistNaoLinear.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c EliminacaoGauss.c -o .build/san/EliminacaoGauss.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c utils.c -o .build/san/utils.o
+utils.c: In function ‘prnVetor’:
+utils.c:42:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function ‘prnMatriz’:
+utils.c:48:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+gcc -fsanitize=address,undefined -no-pie .build/san/resolucaoSNL.o .build/san/Entrada.o .build/san/NewtonSNL.o .build/san/SistNaoLinear.o .build/san/EliminacaoGauss.o .build/san/utils.o -lm -o broyden_san
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c resolucaoSNL.c -o .build/base_san/resolucaoSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c Entrada.c -o .build/base_san/Entrada.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c NewtonSNL.c -o .build/base_san/NewtonSNL.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c SistNaoLinear.c -o .build/base_san/SistNaoLinear.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c EliminacaoGauss.c -o .build/base_san/EliminacaoGauss.o
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -DBROYDEN_BASELINE -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -MMD -MP -c utils.c -o .build/base_san/utils.o
+utils.c: In function ‘prnVetor’:
+utils.c:42:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function ‘prnMatriz’:
+utils.c:48:21: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘unsigned int’ [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+gcc -fsanitize=address,undefined -no-pie .build/base_san/resolucaoSNL.o .build/base_san/Entrada.o .build/base_san/NewtonSNL.o .build/base_san/SistNaoLinear.o .build/base_san/EliminacaoGauss.o .build/base_san/utils.o -lm -o broyden_baseline_san
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -I. tests/test_kernels.c .build/san/SistNaoLinear.o .build/san/EliminacaoGauss.o -lm -o .build/san/test_kernels
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=1  -std=c11 -Wall -Wextra -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -I. tests/test_kernels.c .build/base_san/SistNaoLinear.o .build/base_san/EliminacaoGauss.o -lm -o .build/base_san/test_kernels
+ASAN_OPTIONS="detect_leaks=0" UBSAN_OPTIONS="halt_on_error=1" ./.build/san/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+ASAN_OPTIONS="detect_leaks=0" UBSAN_OPTIONS="halt_on_error=1" ./.build/base_san/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+ASAN_OPTIONS="detect_leaks=0" UBSAN_OPTIONS="halt_on_error=1" python3 tests/test_solver.py 1 ./broyden_san ./broyden_baseline_san --sanitizers
+broyden_san: 22 casos válidos, max |F| no ensaio = 1.33e-15
+broyden_baseline_san: 22 casos válidos, max |F| no ensaio = 1.11e-15
+As duas versões concordam nos vetores finais.

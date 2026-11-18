@@ -11,6 +11,8 @@
 
 #define NUM_VETORES 5
 
+typedef enum { AVANCOU, CONVERGIU, PIVO_INVALIDO, VALOR_NAO_FINITO } Passo;
+
 /*
  * Aloca todos os vetores em um bloco só, antes das iterações.
  * A versão otimizada usa alinhamento de 64 bytes para facilitar o SIMD.
@@ -48,25 +50,20 @@ static double *alocaVetores( size_t n, size_t *tamanho ) {
     return memoria;
 }
 
-/*
- * Faz uma iteração de Newton:
- * 0: atualizou X; 1: convergiu; 2: erro no sistema; 3: erro numérico.
- */
-static int calculaPasso( const double *X, double *FX, double epsilon,
-                        SistLinear_t *SL, Tempos_t *T ) {
-    size_t i;
+/* Faz um passo de Newton. O vetor b passa a conter o novo X. */
+static Passo calculaPasso( const double *X, double epsilon, SistLinear_t *SL, Tempos_t *T ) {
     rtime_t inicio;
 
-    calcF( FX, X, SL->n );
+    calcMenosF( SL->b, X, SL->n );
 
     if ( epsilon > 0.0 ) {
-        double erro = norma( FX, SL->n );
+        double erro = norma( SL->b, SL->n );
 
         if ( !isfinite( erro ) )
-            return 3;
+            return VALOR_NAO_FINITO;
 
         if ( erro <= epsilon )
-            return 1;
+            return CONVERGIU;
     }
 
     /* Calcula somente a diagonal principal da Jacobiana. */
@@ -76,10 +73,6 @@ static int calculaPasso( const double *X, double *FX, double epsilon,
     LIKWID_MARKER_STOP( MARCA_JACOBIANA );
     T->jacobiana += timestamp() - inicio;
 
-    /* Para obter o passo S, resolvemos J*S = -F(X). */
-    for ( i = 0; i < SL->n; i++ )
-        FX[i] = -FX[i];
-
     inicio = timestamp();
     LIKWID_MARKER_START( MARCA_GAUSS );
     int resolveu = eliminacaoGauss( SL );
@@ -87,12 +80,12 @@ static int calculaPasso( const double *X, double *FX, double epsilon,
     T->gauss += timestamp() - inicio;
 
     if ( !resolveu )
-        return 2;
+        return PIVO_INVALIDO;
 
-    if ( !atualizaX( FX, X, SL->n ) )
-        return 3;
+    if ( !atualizaX( SL->b, X, SL->n ) )
+        return VALOR_NAO_FINITO;
 
-    return 0;
+    return AVANCOU;
 }
 
 /* Aplica o método de Newton e imprime os resultados de cada iteração. */
@@ -101,7 +94,7 @@ int newton( size_t n, double x0, double epsilon, size_t MAXIT ) {
     double *memoria, *X, *FX, *troca;
     SistLinear_t SL;
     Tempos_t T = {0};
-    int resultado = 0;
+    Passo resultado = AVANCOU;
 
     memoria = alocaVetores( n, &tamanho );
 
@@ -116,8 +109,8 @@ int newton( size_t n, double x0, double epsilon, size_t MAXIT ) {
     FX = memoria + tamanho;
     SL.n = n;
     SL.principal = memoria + 2 * tamanho;
-    SL.inferior = memoria + 3 * tamanho;
-    SL.superior = memoria + 4 * tamanho;
+    SL.superior = memoria + 3 * tamanho;
+    SL.segunda = memoria + 4 * tamanho;
     SL.b = FX;
 
     for ( i = 0; i < n; i++ )
@@ -135,11 +128,11 @@ int newton( size_t n, double x0, double epsilon, size_t MAXIT ) {
         rtime_t inicio = timestamp();
 
         LIKWID_MARKER_START( MARCA_NEWTON );
-        resultado = calculaPasso( X, FX, epsilon, &SL, &T );
+        resultado = calculaPasso( X, epsilon, &SL, &T );
         LIKWID_MARKER_STOP( MARCA_NEWTON );
         T.total += timestamp() - inicio;
 
-        if ( resultado != 0 )
+        if ( resultado != AVANCOU )
             break;
 
         /* FX recebeu X + S; trocar ponteiros evita copiar o vetor todo. */
@@ -156,13 +149,13 @@ int newton( size_t n, double x0, double epsilon, size_t MAXIT ) {
     imprimeTempos( &T );
     free( memoria );
 
-    if ( resultado == 2 ) {
+    if ( resultado == PIVO_INVALIDO ) {
         fputs( "broyden: Jacobiana singular ou pivô final inutilizável.\n", stderr );
 
         return 1;
     }
 
-    if ( resultado == 3 ) {
+    if ( resultado == VALOR_NAO_FINITO ) {
         fputs( "broyden: resíduo ou atualização não finita.\n", stderr );
 
         return 1;

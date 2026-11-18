@@ -10,7 +10,7 @@ VERSOES = ("baseline", "otimizada")
 PASSOS = 25
 GRUPOS = (("MEM", "L3"), ("L2CACHE", "L1CACHE", "CACHE"), ("FLOPS_DP",), ("FLOPS_AVX",))
 CAMPOS = ("n", "versao", "repeticao", "regiao", "grupo", "metrica", "valor",
-          "chamadas", "tempo_marcador_s", "timestamp_ms")
+          "chamadas", "tempo_marcador_s", "timestamp_ms", "parede_ms")
 
 METRICAS = {
     "MEM": ("memory bandwidth [mbytes/s]",),

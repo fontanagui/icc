@@ -1,0 +1,4 @@
+fcc6e4e8517eee54b64297d038b8e8f8233140c2cde49e1c66917d795a4ca383  likwid_5.4.1.deb
+2a94ff7c50d4c7ea0202879db2f0d5780b57688f245406ce275b6a6a265c77a0  lua5.3.deb
+Origem: https://deb.debian.org/debian/pool/main/l/likwid/likwid_5.4.1+dfsg-1_amd64.deb
+Origem: https://deb.debian.org/debian/pool/main/l/lua5.3/lua5.3_5.3.6-2+b4_amd64.deb

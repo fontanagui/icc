@@ -65,6 +65,7 @@ def le_saida(saida, n):
     assert all(math.isfinite(v) and v >= 0 for v in tempos)
     assert tempos[0] + 1e-8 >= sum(tempos[1:])
 
+    assert len(linhas) >= n + 5
     assert (len(linhas) - 4) % (n + 1) == 0
     vetores = []
     for inicio in range(0, len(linhas) - 5, n + 1):
@@ -142,6 +143,15 @@ def valida(binario, ultima, sanitizers):
         overflow = executa(binario, f"3 1e200 {epsilon} 1")
         assert overflow.returncode == 1 and "não finita" in overflow.stderr
         assert len(le_saida(overflow.stdout, 3)[0]) == 1
+
+    if ultima == 1:
+        limite = executa(binario, "1 0 1 25")
+        assert limite.returncode == 0 and limite.stderr == ""
+        assert le_saida(limite.stdout, 1)[0] == [[0.0]]
+    else:
+        raiz = executa(binario, "1 0 0 3")
+        assert raiz.returncode == 0 and raiz.stderr == ""
+        assert le_saida(raiz.stdout, 1)[0] == [[0.0]] * 4
 
     bits = 8 * struct.calcsize("P")
     grande = executa(binario, f"{(1 << bits) - 1} -1 0 1")

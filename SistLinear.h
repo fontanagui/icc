@@ -3,12 +3,12 @@
 
 #include <stddef.h>
 
-/* Sistema linear J*S = b. Guardamos só três diagonais da Jacobiana. */
+/* O pivotamento usa duas superdiagonais. A subdiagonal vale -1. */
 typedef struct {
     size_t n;
     double *principal;
-    double *inferior;
     double *superior;
+    double *segunda;
     double *b;
 } SistLinear_t;
 

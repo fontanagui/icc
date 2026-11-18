@@ -5,8 +5,8 @@
 #define BROYDEN_LAST_CONSTANT 1
 #endif
 
-/* Calcula F(X), considerando que os vizinhos fora do vetor são zero. */
-void calcF( double *restrict FX, const double *restrict X, size_t n ) {
+/* Calcula -F(X) para o sistema linear de Newton. */
+void calcMenosF( double *restrict b, const double *restrict X, size_t n ) {
     size_t i;
 
 #ifdef BROYDEN_BASELINE
@@ -16,22 +16,22 @@ void calcF( double *restrict FX, const double *restrict X, size_t n ) {
         double direita = i == n - 1 ? 0.0 : X[i + 1];
         double constante = i == n - 1 ? BROYDEN_LAST_CONSTANT : 1.0;
 
-        FX[i] = ( 3.0 - 2.0 * X[i] ) * X[i] - esquerda - 2.0 * direita + constante;
+        b[i] = -( ( 3.0 - 2.0 * X[i] ) * X[i] - esquerda - 2.0 * direita + constante );
     }
 #else
     /* Versão otimizada: separa as bordas para não fazer if no laço. */
     if ( n == 1 ) {
-        FX[0] = ( 3.0 - 2.0 * X[0] ) * X[0] + BROYDEN_LAST_CONSTANT;
+        b[0] = -( ( 3.0 - 2.0 * X[0] ) * X[0] + BROYDEN_LAST_CONSTANT );
 
         return;
     }
 
-    FX[0] = ( 3.0 - 2.0 * X[0] ) * X[0] - 2.0 * X[1] + 1.0;
+    b[0] = -( ( 3.0 - 2.0 * X[0] ) * X[0] - 2.0 * X[1] + 1.0 );
 
     for ( i = 1; i < n - 1; i++ )
-        FX[i] = ( 3.0 - 2.0 * X[i] ) * X[i] - X[i - 1] - 2.0 * X[i + 1] + 1.0;
+        b[i] = -( ( 3.0 - 2.0 * X[i] ) * X[i] - X[i - 1] - 2.0 * X[i + 1] + 1.0 );
 
-    FX[n - 1] = ( 3.0 - 2.0 * X[n - 1] ) * X[n - 1] - X[n - 2] + BROYDEN_LAST_CONSTANT;
+    b[n - 1] = -( ( 3.0 - 2.0 * X[n - 1] ) * X[n - 1] - X[n - 2] + BROYDEN_LAST_CONSTANT );
 #endif
 }
 

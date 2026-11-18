@@ -6,7 +6,4 @@
 /* Resolve o sistema, deixando a solução no próprio vetor b. */
 int eliminacaoGauss( SistLinear_t *SL );
 
-/* Preenche as diagonais constantes: -1 abaixo e -2 acima. */
-void preencheDiagonais( SistLinear_t *SL );
-
 #endif

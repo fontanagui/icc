@@ -1,0 +1,2 @@
+perf_event_paranoid = 3
+CPU_CYCLES para o próprio processo: -1 Invalid argument

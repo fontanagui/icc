@@ -1,0 +1,476 @@
+
+.build/otim/EliminacaoGauss.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <eliminacaoGauss>:
+   0:	48 8b 37             	mov    rsi,QWORD PTR [rdi]
+   3:	48 8b 57 08          	mov    rdx,QWORD PTR [rdi+0x8]
+   7:	49 89 fa             	mov    r10,rdi
+   a:	48 85 f6             	test   rsi,rsi
+   d:	0f 84 c5 06 00 00    	je     6d8 <eliminacaoGauss+0x6d8>
+  13:	48 8d 4e ff          	lea    rcx,[rsi-0x1]
+  17:	48 83 f9 06          	cmp    rcx,0x6
+  1b:	0f 86 2d 07 00 00    	jbe    74e <eliminacaoGauss+0x74e>
+  21:	48 89 f7             	mov    rdi,rsi
+  24:	c4 e2 7d 19 35 00 00 	vbroadcastsd ymm6,QWORD PTR [rip+0x0]        # 2d <eliminacaoGauss+0x2d>
+  2b:	00 00 
+  2d:	c4 e2 7d 19 2d 00 00 	vbroadcastsd ymm5,QWORD PTR [rip+0x0]        # 36 <eliminacaoGauss+0x36>
+  34:	00 00 
+  36:	48 89 d0             	mov    rax,rdx
+  39:	48 c1 ef 03          	shr    rdi,0x3
+  3d:	c4 e2 7d 19 25 00 00 	vbroadcastsd ymm4,QWORD PTR [rip+0x0]        # 46 <eliminacaoGauss+0x46>
+  44:	00 00 
+  46:	c4 e2 7d 59 1d 00 00 	vpbroadcastq ymm3,QWORD PTR [rip+0x0]        # 4f <eliminacaoGauss+0x4f>
+  4d:	00 00 
+  4f:	c5 ed 76 d2          	vpcmpeqd ymm2,ymm2,ymm2
+  53:	48 c1 e7 06          	shl    rdi,0x6
+  57:	48 01 d7             	add    rdi,rdx
+  5a:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+  60:	c5 cd 54 48 20       	vandpd ymm1,ymm6,YMMWORD PTR [rax+0x20]
+  65:	c5 cd 54 00          	vandpd ymm0,ymm6,YMMWORD PTR [rax]
+  69:	48 83 c0 40          	add    rax,0x40
+  6d:	c5 f5 c2 fd 02       	vcmplepd ymm7,ymm1,ymm5
+  72:	c5 dd c2 c9 02       	vcmplepd ymm1,ymm4,ymm1
+  77:	c5 f5 db cf          	vpand  ymm1,ymm1,ymm7
+  7b:	c5 fd c2 fd 02       	vcmplepd ymm7,ymm0,ymm5
+  80:	c5 dd c2 c0 02       	vcmplepd ymm0,ymm4,ymm0
+  85:	c5 f5 db cb          	vpand  ymm1,ymm1,ymm3
+  89:	c5 fd db c7          	vpand  ymm0,ymm0,ymm7
+  8d:	c5 fd db c3          	vpand  ymm0,ymm0,ymm3
+  91:	c4 e3 7d 46 f9 20    	vperm2i128 ymm7,ymm0,ymm1,0x20
+  97:	c4 e3 7d 46 c1 31    	vperm2i128 ymm0,ymm0,ymm1,0x31
+  9d:	c5 fd 70 c0 d8       	vpshufd ymm0,ymm0,0xd8
+  a2:	c5 fd 70 cf d8       	vpshufd ymm1,ymm7,0xd8
+  a7:	c5 f5 6c c0          	vpunpcklqdq ymm0,ymm1,ymm0
+  ab:	c5 ed db d0          	vpand  ymm2,ymm2,ymm0
+  af:	48 39 c7             	cmp    rdi,rax
+  b2:	75 ac                	jne    60 <eliminacaoGauss+0x60>
+  b4:	c4 e3 7d 39 d1 01    	vextracti128 xmm1,ymm2,0x1
+  ba:	48 89 f7             	mov    rdi,rsi
+  bd:	c5 f1 db ca          	vpand  xmm1,xmm1,xmm2
+  c1:	48 83 e7 f8          	and    rdi,0xfffffffffffffff8
+  c5:	c5 f9 73 d9 08       	vpsrldq xmm0,xmm1,0x8
+  ca:	c5 f1 db c0          	vpand  xmm0,xmm1,xmm0
+  ce:	c5 e9 73 d8 04       	vpsrldq xmm2,xmm0,0x4
+  d3:	c5 f9 db c2          	vpand  xmm0,xmm0,xmm2
+  d7:	c5 f9 6f d1          	vmovdqa xmm2,xmm1
+  db:	c5 f9 7e c0          	vmovd  eax,xmm0
+  df:	83 e0 01             	and    eax,0x1
+  e2:	40 f6 c6 07          	test   sil,0x7
+  e6:	0f 84 1c 06 00 00    	je     708 <eliminacaoGauss+0x708>
+  ec:	49 89 f0             	mov    r8,rsi
+  ef:	49 29 f8             	sub    r8,rdi
+  f2:	4d 8d 48 ff          	lea    r9,[r8-0x1]
+  f6:	49 83 f9 02          	cmp    r9,0x2
+  fa:	0f 86 8d 00 00 00    	jbe    18d <eliminacaoGauss+0x18d>
+ 100:	c5 fb 12 0d 00 00 00 	vmovddup xmm1,QWORD PTR [rip+0x0]        # 108 <eliminacaoGauss+0x108>
+ 107:	00 
+ 108:	48 8d 04 fa          	lea    rax,[rdx+rdi*8]
+ 10c:	c5 fb 12 1d 00 00 00 	vmovddup xmm3,QWORD PTR [rip+0x0]        # 114 <eliminacaoGauss+0x114>
+ 113:	00 
+ 114:	4d 89 c1             	mov    r9,r8
+ 117:	c5 fb 12 05 00 00 00 	vmovddup xmm0,QWORD PTR [rip+0x0]        # 11f <eliminacaoGauss+0x11f>
+ 11e:	00 
+ 11f:	49 83 e1 fc          	and    r9,0xfffffffffffffffc
+ 123:	c5 f1 54 20          	vandpd xmm4,xmm1,XMMWORD PTR [rax]
+ 127:	c5 f1 54 48 10       	vandpd xmm1,xmm1,XMMWORD PTR [rax+0x10]
+ 12c:	b8 01 00 00 00       	mov    eax,0x1
+ 131:	4c 01 cf             	add    rdi,r9
+ 134:	c5 f1 c2 eb 02       	vcmplepd xmm5,xmm1,xmm3
+ 139:	c5 f9 c2 c9 02       	vcmplepd xmm1,xmm0,xmm1
+ 13e:	c5 d9 c2 db 02       	vcmplepd xmm3,xmm4,xmm3
+ 143:	c5 f9 c2 c4 02       	vcmplepd xmm0,xmm0,xmm4
+ 148:	c5 f1 db cd          	vpand  xmm1,xmm1,xmm5
+ 14c:	c5 f9 db c3          	vpand  xmm0,xmm0,xmm3
+ 150:	c4 e1 f9 6e d8       	vmovq  xmm3,rax
+ 155:	c5 e1 6c db          	vpunpcklqdq xmm3,xmm3,xmm3
+ 159:	c5 f1 db cb          	vpand  xmm1,xmm1,xmm3
+ 15d:	c5 f9 db c3          	vpand  xmm0,xmm0,xmm3
+ 161:	c5 f8 c6 c1 88       	vshufps xmm0,xmm0,xmm1,0x88
+ 166:	c5 f9 db c2          	vpand  xmm0,xmm0,xmm2
+ 16a:	c5 f1 73 d8 08       	vpsrldq xmm1,xmm0,0x8
+ 16f:	c5 f9 db c1          	vpand  xmm0,xmm0,xmm1
+ 173:	c5 f1 73 d8 04       	vpsrldq xmm1,xmm0,0x4
+ 178:	c5 f9 db c1          	vpand  xmm0,xmm0,xmm1
+ 17c:	c5 f9 7e c0          	vmovd  eax,xmm0
+ 180:	83 e0 01             	and    eax,0x1
+ 183:	41 83 e0 03          	and    r8d,0x3
+ 187:	0f 84 6b 03 00 00    	je     4f8 <eliminacaoGauss+0x4f8>
+ 18d:	c5 fb 10 04 fa       	vmovsd xmm0,QWORD PTR [rdx+rdi*8]
+ 192:	c5 fa 7e 2d 00 00 00 	vmovq  xmm5,QWORD PTR [rip+0x0]        # 19a <eliminacaoGauss+0x19a>
+ 199:	00 
+ 19a:	4c 8d 0c fd 00 00 00 	lea    r9,[rdi*8+0x0]
+ 1a1:	00 
+ 1a2:	c5 fb 10 35 00 00 00 	vmovsd xmm6,QWORD PTR [rip+0x0]        # 1aa <eliminacaoGauss+0x1aa>
+ 1a9:	00 
+ 1aa:	c5 f9 54 c5          	vandpd xmm0,xmm0,xmm5
+ 1ae:	c5 f9 2f 05 00 00 00 	vcomisd xmm0,QWORD PTR [rip+0x0]        # 1b6 <eliminacaoGauss+0x1b6>
+ 1b5:	00 
+ 1b6:	41 0f 93 c3          	setae  r11b
+ 1ba:	45 31 c0             	xor    r8d,r8d
+ 1bd:	c5 f9 2f f0          	vcomisd xmm6,xmm0
+ 1c1:	41 0f 93 c0          	setae  r8b
+ 1c5:	45 21 d8             	and    r8d,r11d
+ 1c8:	44 21 c0             	and    eax,r8d
+ 1cb:	4c 8d 47 01          	lea    r8,[rdi+0x1]
+ 1cf:	49 39 f0             	cmp    r8,rsi
+ 1d2:	0f 83 20 03 00 00    	jae    4f8 <eliminacaoGauss+0x4f8>
+ 1d8:	c4 a1 7b 10 44 0a 08 	vmovsd xmm0,QWORD PTR [rdx+r9*1+0x8]
+ 1df:	c5 f9 54 c5          	vandpd xmm0,xmm0,xmm5
+ 1e3:	c5 f9 2f 05 00 00 00 	vcomisd xmm0,QWORD PTR [rip+0x0]        # 1eb <eliminacaoGauss+0x1eb>
+ 1ea:	00 
+ 1eb:	41 0f 93 c3          	setae  r11b
+ 1ef:	45 31 c0             	xor    r8d,r8d
+ 1f2:	c5 f9 2f f0          	vcomisd xmm6,xmm0
+ 1f6:	41 0f 93 c0          	setae  r8b
+ 1fa:	45 21 d8             	and    r8d,r11d
+ 1fd:	41 21 c0             	and    r8d,eax
+ 200:	48 8d 47 02          	lea    rax,[rdi+0x2]
+ 204:	48 39 f0             	cmp    rax,rsi
+ 207:	0f 83 13 03 00 00    	jae    520 <eliminacaoGauss+0x520>
+ 20d:	c4 a1 7b 10 44 0a 10 	vmovsd xmm0,QWORD PTR [rdx+r9*1+0x10]
+ 214:	c5 f9 54 c5          	vandpd xmm0,xmm0,xmm5
+ 218:	c5 f9 2f f0          	vcomisd xmm6,xmm0
+ 21c:	40 0f 93 c7          	setae  dil
+ 220:	31 c0                	xor    eax,eax
+ 222:	c5 f9 2f 05 00 00 00 	vcomisd xmm0,QWORD PTR [rip+0x0]        # 22a <eliminacaoGauss+0x22a>
+ 229:	00 
+ 22a:	0f 93 c0             	setae  al
+ 22d:	21 f8                	and    eax,edi
+ 22f:	44 85 c0             	test   eax,r8d
+ 232:	0f 85 f8 04 00 00    	jne    730 <eliminacaoGauss+0x730>
+ 238:	4d 8b 4a 20          	mov    r9,QWORD PTR [r10+0x20]
+ 23c:	49 8b 7a 10          	mov    rdi,QWORD PTR [r10+0x10]
+ 240:	4d 8b 42 18          	mov    r8,QWORD PTR [r10+0x18]
+ 244:	48 83 fe 01          	cmp    rsi,0x1
+ 248:	0f 84 7b 01 00 00    	je     3c9 <eliminacaoGauss+0x3c9>
+ 24e:	48 8d 46 fe          	lea    rax,[rsi-0x2]
+ 252:	48 83 f8 02          	cmp    rax,0x2
+ 256:	0f 86 02 05 00 00    	jbe    75e <eliminacaoGauss+0x75e>
+ 25c:	49 89 cb             	mov    r11,rcx
+ 25f:	c4 e2 7d 19 05 00 00 	vbroadcastsd ymm0,QWORD PTR [rip+0x0]        # 268 <eliminacaoGauss+0x268>
+ 266:	00 00 
+ 268:	48 89 f8             	mov    rax,rdi
+ 26b:	49 c1 eb 02          	shr    r11,0x2
+ 26f:	49 c1 e3 05          	shl    r11,0x5
+ 273:	4d 8d 14 3b          	lea    r10,[r11+rdi*1]
+ 277:	41 83 e3 20          	and    r11d,0x20
+ 27b:	74 23                	je     2a0 <eliminacaoGauss+0x2a0>
+ 27d:	48 8d 47 20          	lea    rax,[rdi+0x20]
+ 281:	c5 fd 11 07          	vmovupd YMMWORD PTR [rdi],ymm0
+ 285:	4c 39 d0             	cmp    rax,r10
+ 288:	74 28                	je     2b2 <eliminacaoGauss+0x2b2>
+ 28a:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 291:	00 00 00 00 
+ 295:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 29c:	00 00 00 00 
+ 2a0:	c5 fd 11 00          	vmovupd YMMWORD PTR [rax],ymm0
+ 2a4:	48 83 c0 40          	add    rax,0x40
+ 2a8:	c5 fd 11 40 e0       	vmovupd YMMWORD PTR [rax-0x20],ymm0
+ 2ad:	4c 39 d0             	cmp    rax,r10
+ 2b0:	75 ee                	jne    2a0 <eliminacaoGauss+0x2a0>
+ 2b2:	49 89 ca             	mov    r10,rcx
+ 2b5:	49 83 e2 fc          	and    r10,0xfffffffffffffffc
+ 2b9:	83 e1 03             	and    ecx,0x3
+ 2bc:	49 8d 42 01          	lea    rax,[r10+0x1]
+ 2c0:	74 33                	je     2f5 <eliminacaoGauss+0x2f5>
+ 2c2:	c5 fb 10 05 00 00 00 	vmovsd xmm0,QWORD PTR [rip+0x0]        # 2ca <eliminacaoGauss+0x2ca>
+ 2c9:	00 
+ 2ca:	48 8d 48 01          	lea    rcx,[rax+0x1]
+ 2ce:	c4 a1 7b 11 04 d7    	vmovsd QWORD PTR [rdi+r10*8],xmm0
+ 2d4:	48 39 f1             	cmp    rcx,rsi
+ 2d7:	73 1c                	jae    2f5 <eliminacaoGauss+0x2f5>
+ 2d9:	48 8d 0c c5 00 00 00 	lea    rcx,[rax*8+0x0]
+ 2e0:	00 
+ 2e1:	c5 fb 11 04 c7       	vmovsd QWORD PTR [rdi+rax*8],xmm0
+ 2e6:	48 83 c0 02          	add    rax,0x2
+ 2ea:	48 39 f0             	cmp    rax,rsi
+ 2ed:	73 06                	jae    2f5 <eliminacaoGauss+0x2f5>
+ 2ef:	c5 fb 11 44 0f 08    	vmovsd QWORD PTR [rdi+rcx*1+0x8],xmm0
+ 2f5:	c5 fb 10 1d 00 00 00 	vmovsd xmm3,QWORD PTR [rip+0x0]        # 2fd <eliminacaoGauss+0x2fd>
+ 2fc:	00 
+ 2fd:	c5 fb 10 25 00 00 00 	vmovsd xmm4,QWORD PTR [rip+0x0]        # 305 <eliminacaoGauss+0x305>
+ 304:	00 
+ 305:	49 8d 49 08          	lea    rcx,[r9+0x8]
+ 309:	b8 02 00 00 00       	mov    eax,0x2
+ 30e:	eb 3c                	jmp    34c <eliminacaoGauss+0x34c>
+ 310:	c5 db 5e c0          	vdivsd xmm0,xmm4,xmm0
+ 314:	c4 e2 f9 bd 4c c7 f0 	vfnmadd231sd xmm1,xmm0,QWORD PTR [rdi+rax*8-0x10]
+ 31b:	c5 fb 11 4c c2 f8    	vmovsd QWORD PTR [rdx+rax*8-0x8],xmm1
+ 321:	c5 fb 10 11          	vmovsd xmm2,QWORD PTR [rcx]
+ 325:	c4 e2 e9 9d 41 f8    	vfnmadd132sd xmm0,xmm2,QWORD PTR [rcx-0x8]
+ 32b:	c5 fb 11 01          	vmovsd QWORD PTR [rcx],xmm0
+ 32f:	49 c7 44 c0 f0 00 00 	mov    QWORD PTR [r8+rax*8-0x10],0x0
+ 336:	00 00 
+ 338:	4c 8d 50 01          	lea    r10,[rax+0x1]
+ 33c:	48 83 c1 08          	add    rcx,0x8
+ 340:	48 39 f0             	cmp    rax,rsi
+ 343:	0f 84 80 00 00 00    	je     3c9 <eliminacaoGauss+0x3c9>
+ 349:	4c 89 d0             	mov    rax,r10
+ 34c:	c5 fb 10 44 c2 f0    	vmovsd xmm0,QWORD PTR [rdx+rax*8-0x10]
+ 352:	c5 f9 54 d5          	vandpd xmm2,xmm0,xmm5
+ 356:	c5 f9 2e f2          	vucomisd xmm6,xmm2
+ 35a:	0f 82 b8 01 00 00    	jb     518 <eliminacaoGauss+0x518>
+ 360:	c5 f9 2f d3          	vcomisd xmm2,xmm3
+ 364:	c5 fb 10 4c c2 f8    	vmovsd xmm1,QWORD PTR [rdx+rax*8-0x8]
+ 36a:	73 a4                	jae    310 <eliminacaoGauss+0x310>
+ 36c:	c5 fb 10 51 f8       	vmovsd xmm2,QWORD PTR [rcx-0x8]
+ 371:	c5 f9 28 f8          	vmovapd xmm7,xmm0
+ 375:	c5 fb 11 64 c2 f0    	vmovsd QWORD PTR [rdx+rax*8-0x10],xmm4
+ 37b:	c4 e2 f1 a9 7c c7 f0 	vfmadd213sd xmm7,xmm1,QWORD PTR [rdi+rax*8-0x10]
+ 382:	c5 fb 11 7c c2 f8    	vmovsd QWORD PTR [rdx+rax*8-0x8],xmm7
+ 388:	c5 fb 11 4c c7 f0    	vmovsd QWORD PTR [rdi+rax*8-0x10],xmm1
+ 38e:	c5 fb 10 09          	vmovsd xmm1,QWORD PTR [rcx]
+ 392:	c5 fb 11 49 f8       	vmovsd QWORD PTR [rcx-0x8],xmm1
+ 397:	c4 e2 e9 99 c8       	vfmadd132sd xmm1,xmm2,xmm0
+ 39c:	c5 fb 11 09          	vmovsd QWORD PTR [rcx],xmm1
+ 3a0:	48 39 f0             	cmp    rax,rsi
+ 3a3:	73 93                	jae    338 <eliminacaoGauss+0x338>
+ 3a5:	c5 fb 10 4c c7 f8    	vmovsd xmm1,QWORD PTR [rdi+rax*8-0x8]
+ 3ab:	4c 8d 50 01          	lea    r10,[rax+0x1]
+ 3af:	48 83 c1 08          	add    rcx,0x8
+ 3b3:	c5 fb 59 c1          	vmulsd xmm0,xmm0,xmm1
+ 3b7:	c4 c1 7b 11 4c c0 f0 	vmovsd QWORD PTR [r8+rax*8-0x10],xmm1
+ 3be:	c5 fb 11 44 c7 f8    	vmovsd QWORD PTR [rdi+rax*8-0x8],xmm0
+ 3c4:	48 39 f0             	cmp    rax,rsi
+ 3c7:	75 80                	jne    349 <eliminacaoGauss+0x349>
+ 3c9:	48 8d 0c f5 00 00 00 	lea    rcx,[rsi*8+0x0]
+ 3d0:	00 
+ 3d1:	c5 fb 10 44 0a f8    	vmovsd xmm0,QWORD PTR [rdx+rcx*1-0x8]
+ 3d7:	48 8d 41 f8          	lea    rax,[rcx-0x8]
+ 3db:	c5 f9 54 ed          	vandpd xmm5,xmm0,xmm5
+ 3df:	c5 f9 2e f5          	vucomisd xmm6,xmm5
+ 3e3:	0f 82 2f 01 00 00    	jb     518 <eliminacaoGauss+0x518>
+ 3e9:	c5 f1 57 c9          	vxorpd xmm1,xmm1,xmm1
+ 3ed:	c5 f9 2e c1          	vucomisd xmm0,xmm1
+ 3f1:	7a 06                	jp     3f9 <eliminacaoGauss+0x3f9>
+ 3f3:	0f 84 1f 01 00 00    	je     518 <eliminacaoGauss+0x518>
+ 3f9:	4c 01 c8             	add    rax,r9
+ 3fc:	c5 fb 10 08          	vmovsd xmm1,QWORD PTR [rax]
+ 400:	c5 f3 5e c0          	vdivsd xmm0,xmm1,xmm0
+ 404:	c5 fb 11 00          	vmovsd QWORD PTR [rax],xmm0
+ 408:	48 83 fe 01          	cmp    rsi,0x1
+ 40c:	0f 84 d6 00 00 00    	je     4e8 <eliminacaoGauss+0x4e8>
+ 412:	49 8d 44 09 f0       	lea    rax,[r9+rcx*1-0x10]
+ 417:	c5 fb 10 20          	vmovsd xmm4,QWORD PTR [rax]
+ 41b:	c4 e2 d9 9d 44 0f f0 	vfnmadd132sd xmm0,xmm4,QWORD PTR [rdi+rcx*1-0x10]
+ 422:	c5 fb 5e 44 0a f0    	vdivsd xmm0,xmm0,QWORD PTR [rdx+rcx*1-0x10]
+ 428:	c5 fb 11 00          	vmovsd QWORD PTR [rax],xmm0
+ 42c:	48 89 f0             	mov    rax,rsi
+ 42f:	48 83 e8 02          	sub    rax,0x2
+ 433:	0f 84 af 00 00 00    	je     4e8 <eliminacaoGauss+0x4e8>
+ 439:	4c 8d 56 fd          	lea    r10,[rsi-0x3]
+ 43d:	4c 01 c9             	add    rcx,r9
+ 440:	49 83 fa 01          	cmp    r10,0x1
+ 444:	0f 86 70 03 00 00    	jbe    7ba <eliminacaoGauss+0x7ba>
+ 44a:	c5 fb 10 49 f8       	vmovsd xmm1,QWORD PTR [rcx-0x8]
+ 44f:	48 8d 4e fc          	lea    rcx,[rsi-0x4]
+ 453:	48 83 ee 05          	sub    rsi,0x5
+ 457:	48 83 e6 fe          	and    rsi,0xfffffffffffffffe
+ 45b:	48 29 f1             	sub    rcx,rsi
+ 45e:	66 90                	xchg   ax,ax
+ 460:	c5 fb 10 54 c7 f8    	vmovsd xmm2,QWORD PTR [rdi+rax*8-0x8]
+ 466:	c4 c2 f9 ad 54 c1 f8 	vfnmadd213sd xmm2,xmm0,QWORD PTR [r9+rax*8-0x8]
+ 46d:	c4 c2 e9 9d 4c c0 f8 	vfnmadd132sd xmm1,xmm2,QWORD PTR [r8+rax*8-0x8]
+ 474:	c5 f3 5e 4c c2 f8    	vdivsd xmm1,xmm1,QWORD PTR [rdx+rax*8-0x8]
+ 47a:	c4 c1 7b 11 4c c1 f8 	vmovsd QWORD PTR [r9+rax*8-0x8],xmm1
+ 481:	48 83 e8 02          	sub    rax,0x2
+ 485:	c5 fb 10 14 c7       	vmovsd xmm2,QWORD PTR [rdi+rax*8]
+ 48a:	c4 c2 f1 ad 14 c1    	vfnmadd213sd xmm2,xmm1,QWORD PTR [r9+rax*8]
+ 490:	c4 c2 e9 9d 04 c0    	vfnmadd132sd xmm0,xmm2,QWORD PTR [r8+rax*8]
+ 496:	c5 fb 5e 04 c2       	vdivsd xmm0,xmm0,QWORD PTR [rdx+rax*8]
+ 49b:	c4 c1 7b 11 04 c1    	vmovsd QWORD PTR [r9+rax*8],xmm0
+ 4a1:	48 39 c1             	cmp    rcx,rax
+ 4a4:	75 ba                	jne    460 <eliminacaoGauss+0x460>
+ 4a6:	48 8d 41 ff          	lea    rax,[rcx-0x1]
+ 4aa:	4c 8d 14 cd 00 00 00 	lea    r10,[rcx*8+0x0]
+ 4b1:	00 
+ 4b2:	49 8d 34 c1          	lea    rsi,[r9+rax*8]
+ 4b6:	4f 8d 1c 11          	lea    r11,[r9+r10*1]
+ 4ba:	c5 fb 10 26          	vmovsd xmm4,QWORD PTR [rsi]
+ 4be:	c4 c1 7b 10 03       	vmovsd xmm0,QWORD PTR [r11]
+ 4c3:	c4 e2 d9 9d 04 c7    	vfnmadd132sd xmm0,xmm4,QWORD PTR [rdi+rax*8]
+ 4c9:	c4 81 7b 10 64 11 08 	vmovsd xmm4,QWORD PTR [r9+r10*1+0x8]
+ 4d0:	c4 c2 d9 bd 04 c0    	vfnmadd231sd xmm0,xmm4,QWORD PTR [r8+rax*8]
+ 4d6:	c5 fb 5e 04 c2       	vdivsd xmm0,xmm0,QWORD PTR [rdx+rax*8]
+ 4db:	c5 fb 11 06          	vmovsd QWORD PTR [rsi],xmm0
+ 4df:	48 85 c0             	test   rax,rax
+ 4e2:	0f 85 83 02 00 00    	jne    76b <eliminacaoGauss+0x76b>
+ 4e8:	c5 f8 77             	vzeroupper
+ 4eb:	b8 01 00 00 00       	mov    eax,0x1
+ 4f0:	c3                   	ret
+ 4f1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+ 4f8:	85 c0                	test   eax,eax
+ 4fa:	75 44                	jne    540 <eliminacaoGauss+0x540>
+ 4fc:	c5 fa 7e 2d 00 00 00 	vmovq  xmm5,QWORD PTR [rip+0x0]        # 504 <eliminacaoGauss+0x504>
+ 503:	00 
+ 504:	c5 fb 10 35 00 00 00 	vmovsd xmm6,QWORD PTR [rip+0x0]        # 50c <eliminacaoGauss+0x50c>
+ 50b:	00 
+ 50c:	e9 27 fd ff ff       	jmp    238 <eliminacaoGauss+0x238>
+ 511:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+ 518:	31 c0                	xor    eax,eax
+ 51a:	c5 f8 77             	vzeroupper
+ 51d:	c3                   	ret
+ 51e:	66 90                	xchg   ax,ax
+ 520:	45 85 c0             	test   r8d,r8d
+ 523:	75 1b                	jne    540 <eliminacaoGauss+0x540>
+ 525:	4d 8b 4a 20          	mov    r9,QWORD PTR [r10+0x20]
+ 529:	49 8b 7a 10          	mov    rdi,QWORD PTR [r10+0x10]
+ 52d:	4d 8b 42 18          	mov    r8,QWORD PTR [r10+0x18]
+ 531:	e9 18 fd ff ff       	jmp    24e <eliminacaoGauss+0x24e>
+ 536:	66 2e 0f 1f 84 00 00 	cs nop WORD PTR [rax+rax*1+0x0]
+ 53d:	00 00 00 
+ 540:	48 89 cf             	mov    rdi,rcx
+ 543:	49 8b 42 20          	mov    rax,QWORD PTR [r10+0x20]
+ 547:	48 d1 ef             	shr    rdi,1
+ 54a:	0f 84 49 02 00 00    	je     799 <eliminacaoGauss+0x799>
+ 550:	4c 8d 0c fd 00 00 00 	lea    r9,[rdi*8+0x0]
+ 557:	00 
+ 558:	4c 8d 47 01          	lea    r8,[rdi+0x1]
+ 55c:	c5 f8 77             	vzeroupper
+ 55f:	c5 e1 57 db          	vxorpd xmm3,xmm3,xmm3
+ 563:	c5 fb 10 25 00 00 00 	vmovsd xmm4,QWORD PTR [rip+0x0]        # 56b <eliminacaoGauss+0x56b>
+ 56a:	00 
+ 56b:	c5 fb 10 35 00 00 00 	vmovsd xmm6,QWORD PTR [rip+0x0]        # 573 <eliminacaoGauss+0x573>
+ 572:	00 
+ 573:	49 89 cb             	mov    r11,rcx
+ 576:	c5 f9 28 d3          	vmovapd xmm2,xmm3
+ 57a:	c5 f9 28 c3          	vmovapd xmm0,xmm3
+ 57e:	c5 f9 28 cb          	vmovapd xmm1,xmm3
+ 582:	45 31 d2             	xor    r10d,r10d
+ 585:	0f 1f 00             	nop    DWORD PTR [rax]
+ 588:	c4 a2 d9 ad 0c d2    	vfnmadd213sd xmm1,xmm4,QWORD PTR [rdx+r10*8]
+ 58e:	c4 a2 d9 ad 04 da    	vfnmadd213sd xmm0,xmm4,QWORD PTR [rdx+r11*8]
+ 594:	c4 a2 d9 a9 1c d8    	vfmadd213sd xmm3,xmm4,QWORD PTR [rax+r11*8]
+ 59a:	c4 a1 6b 58 14 d0    	vaddsd xmm2,xmm2,QWORD PTR [rax+r10*8]
+ 5a0:	c5 cb 5e c9          	vdivsd xmm1,xmm6,xmm1
+ 5a4:	c5 cb 5e c0          	vdivsd xmm0,xmm6,xmm0
+ 5a8:	c5 f3 59 d2          	vmulsd xmm2,xmm1,xmm2
+ 5ac:	c5 f3 58 e9          	vaddsd xmm5,xmm1,xmm1
+ 5b0:	c4 a1 7b 11 2c d2    	vmovsd QWORD PTR [rdx+r10*8],xmm5
+ 5b6:	c5 fb 59 db          	vmulsd xmm3,xmm0,xmm3
+ 5ba:	c4 a1 7b 11 04 da    	vmovsd QWORD PTR [rdx+r11*8],xmm0
+ 5c0:	c4 a1 7b 11 14 d0    	vmovsd QWORD PTR [rax+r10*8],xmm2
+ 5c6:	49 ff c2             	inc    r10
+ 5c9:	c4 a1 7b 11 1c d8    	vmovsd QWORD PTR [rax+r11*8],xmm3
+ 5cf:	49 ff cb             	dec    r11
+ 5d2:	49 39 fa             	cmp    r10,rdi
+ 5d5:	75 b1                	jne    588 <eliminacaoGauss+0x588>
+ 5d7:	c5 fb 58 c0          	vaddsd xmm0,xmm0,xmm0
+ 5db:	c5 e3 58 db          	vaddsd xmm3,xmm3,xmm3
+ 5df:	48 29 f9             	sub    rcx,rdi
+ 5e2:	48 39 cf             	cmp    rdi,rcx
+ 5e5:	73 39                	jae    620 <eliminacaoGauss+0x620>
+ 5e7:	48 c1 e1 03          	shl    rcx,0x3
+ 5eb:	4c 8d 14 0a          	lea    r10,[rdx+rcx*1]
+ 5ef:	48 01 c1             	add    rcx,rax
+ 5f2:	c4 c1 7b 10 0a       	vmovsd xmm1,QWORD PTR [r10]
+ 5f7:	c5 e3 58 19          	vaddsd xmm3,xmm3,QWORD PTR [rcx]
+ 5fb:	c5 f3 5c c8          	vsubsd xmm1,xmm1,xmm0
+ 5ff:	c5 fb 10 05 00 00 00 	vmovsd xmm0,QWORD PTR [rip+0x0]        # 607 <eliminacaoGauss+0x607>
+ 606:	00 
+ 607:	c5 fb 5e c1          	vdivsd xmm0,xmm0,xmm1
+ 60b:	c5 e3 59 d8          	vmulsd xmm3,xmm3,xmm0
+ 60f:	c4 c1 7b 11 02       	vmovsd QWORD PTR [r10],xmm0
+ 614:	c5 fb 58 c0          	vaddsd xmm0,xmm0,xmm0
+ 618:	c5 fb 11 19          	vmovsd QWORD PTR [rcx],xmm3
+ 61c:	c5 e3 58 db          	vaddsd xmm3,xmm3,xmm3
+ 620:	c4 a1 7b 10 0c 0a    	vmovsd xmm1,QWORD PTR [rdx+r9*1]
+ 626:	4a 8d 0c 08          	lea    rcx,[rax+r9*1]
+ 62a:	c5 eb 58 11          	vaddsd xmm2,xmm2,QWORD PTR [rcx]
+ 62e:	c5 f3 5c cd          	vsubsd xmm1,xmm1,xmm5
+ 632:	c5 eb 58 d3          	vaddsd xmm2,xmm2,xmm3
+ 636:	c5 f3 5c c0          	vsubsd xmm0,xmm1,xmm0
+ 63a:	c5 eb 5e c0          	vdivsd xmm0,xmm2,xmm0
+ 63e:	c5 fb 11 01          	vmovsd QWORD PTR [rcx],xmm0
+ 642:	c5 f9 28 c8          	vmovapd xmm1,xmm0
+ 646:	48 85 ff             	test   rdi,rdi
+ 649:	74 67                	je     6b2 <eliminacaoGauss+0x6b2>
+ 64b:	49 89 f8             	mov    r8,rdi
+ 64e:	48 89 f9             	mov    rcx,rdi
+ 651:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 658:	00 00 00 00 
+ 65c:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 663:	00 00 00 00 
+ 667:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 66e:	00 00 00 00 
+ 672:	66 66 2e 0f 1f 84 00 	data16 cs nop WORD PTR [rax+rax*1+0x0]
+ 679:	00 00 00 00 
+ 67d:	0f 1f 00             	nop    DWORD PTR [rax]
+ 680:	48 ff c9             	dec    rcx
+ 683:	49 ff c0             	inc    r8
+ 686:	c5 fb 10 34 c8       	vmovsd xmm6,QWORD PTR [rax+rcx*8]
+ 68b:	c4 a1 7b 10 2c c0    	vmovsd xmm5,QWORD PTR [rax+r8*8]
+ 691:	c4 e2 c9 99 04 ca    	vfmadd132sd xmm0,xmm6,QWORD PTR [rdx+rcx*8]
+ 697:	c4 a2 d1 99 0c c2    	vfmadd132sd xmm1,xmm5,QWORD PTR [rdx+r8*8]
+ 69d:	c5 fb 11 04 c8       	vmovsd QWORD PTR [rax+rcx*8],xmm0
+ 6a2:	c4 a1 7b 11 0c c0    	vmovsd QWORD PTR [rax+r8*8],xmm1
+ 6a8:	48 85 c9             	test   rcx,rcx
+ 6ab:	75 d3                	jne    680 <eliminacaoGauss+0x680>
+ 6ad:	4c 8d 44 3f 01       	lea    r8,[rdi+rdi*1+0x1]
+ 6b2:	49 39 f0             	cmp    r8,rsi
+ 6b5:	0f 83 30 fe ff ff    	jae    4eb <eliminacaoGauss+0x4eb>
+ 6bb:	4a 8d 04 c0          	lea    rax,[rax+r8*8]
+ 6bf:	c5 fb 10 20          	vmovsd xmm4,QWORD PTR [rax]
+ 6c3:	c4 a2 d9 99 0c c2    	vfmadd132sd xmm1,xmm4,QWORD PTR [rdx+r8*8]
+ 6c9:	c5 fb 11 08          	vmovsd QWORD PTR [rax],xmm1
+ 6cd:	b8 01 00 00 00       	mov    eax,0x1
+ 6d2:	c3                   	ret
+ 6d3:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+ 6d8:	48 8b 47 20          	mov    rax,QWORD PTR [rdi+0x20]
+ 6dc:	49 b8 00 00 00 00 00 	movabs r8,0x8000000000000000
+ 6e3:	00 00 80 
+ 6e6:	49 c7 c1 f8 ff ff ff 	mov    r9,0xfffffffffffffff8
+ 6ed:	48 bf ff ff ff ff ff 	movabs rdi,0x7fffffffffffffff
+ 6f4:	ff ff 7f 
+ 6f7:	48 c7 c1 ff ff ff ff 	mov    rcx,0xffffffffffffffff
+ 6fe:	e9 5c fe ff ff       	jmp    55f <eliminacaoGauss+0x55f>
+ 703:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+ 708:	85 c0                	test   eax,eax
+ 70a:	75 24                	jne    730 <eliminacaoGauss+0x730>
+ 70c:	4d 8b 4a 20          	mov    r9,QWORD PTR [r10+0x20]
+ 710:	49 8b 7a 10          	mov    rdi,QWORD PTR [r10+0x10]
+ 714:	4d 8b 42 18          	mov    r8,QWORD PTR [r10+0x18]
+ 718:	c5 fa 7e 2d 00 00 00 	vmovq  xmm5,QWORD PTR [rip+0x0]        # 720 <eliminacaoGauss+0x720>
+ 71f:	00 
+ 720:	c5 fb 10 35 00 00 00 	vmovsd xmm6,QWORD PTR [rip+0x0]        # 728 <eliminacaoGauss+0x728>
+ 727:	00 
+ 728:	e9 2f fb ff ff       	jmp    25c <eliminacaoGauss+0x25c>
+ 72d:	0f 1f 00             	nop    DWORD PTR [rax]
+ 730:	48 89 cf             	mov    rdi,rcx
+ 733:	49 8b 42 20          	mov    rax,QWORD PTR [r10+0x20]
+ 737:	48 d1 ef             	shr    rdi,1
+ 73a:	4c 8d 0c fd 00 00 00 	lea    r9,[rdi*8+0x0]
+ 741:	00 
+ 742:	4c 8d 47 01          	lea    r8,[rdi+0x1]
+ 746:	c5 f8 77             	vzeroupper
+ 749:	e9 11 fe ff ff       	jmp    55f <eliminacaoGauss+0x55f>
+ 74e:	c5 e9 76 d2          	vpcmpeqd xmm2,xmm2,xmm2
+ 752:	b8 01 00 00 00       	mov    eax,0x1
+ 757:	31 ff                	xor    edi,edi
+ 759:	e9 8e f9 ff ff       	jmp    ec <eliminacaoGauss+0xec>
+ 75e:	b8 01 00 00 00       	mov    eax,0x1
+ 763:	45 31 d2             	xor    r10d,r10d
+ 766:	e9 57 fb ff ff       	jmp    2c2 <eliminacaoGauss+0x2c2>
+ 76b:	48 83 e9 02          	sub    rcx,0x2
+ 76f:	49 8d 04 c9          	lea    rax,[r9+rcx*8]
+ 773:	c5 fb 10 20          	vmovsd xmm4,QWORD PTR [rax]
+ 777:	c4 e2 d9 9d 04 cf    	vfnmadd132sd xmm0,xmm4,QWORD PTR [rdi+rcx*8]
+ 77d:	c4 c1 7b 10 23       	vmovsd xmm4,QWORD PTR [r11]
+ 782:	c4 c2 d9 bd 04 c8    	vfnmadd231sd xmm0,xmm4,QWORD PTR [r8+rcx*8]
+ 788:	c5 fb 5e 04 ca       	vdivsd xmm0,xmm0,QWORD PTR [rdx+rcx*8]
+ 78d:	c5 fb 11 00          	vmovsd QWORD PTR [rax],xmm0
+ 791:	c5 f8 77             	vzeroupper
+ 794:	e9 52 fd ff ff       	jmp    4eb <eliminacaoGauss+0x4eb>
+ 799:	c5 d1 57 ed          	vxorpd xmm5,xmm5,xmm5
+ 79d:	45 31 c9             	xor    r9d,r9d
+ 7a0:	41 b8 01 00 00 00    	mov    r8d,0x1
+ 7a6:	c5 f9 28 dd          	vmovapd xmm3,xmm5
+ 7aa:	c5 f9 28 c5          	vmovapd xmm0,xmm5
+ 7ae:	c5 f9 28 d5          	vmovapd xmm2,xmm5
+ 7b2:	c5 f8 77             	vzeroupper
+ 7b5:	e9 28 fe ff ff       	jmp    5e2 <eliminacaoGauss+0x5e2>
+ 7ba:	48 89 c1             	mov    rcx,rax
+ 7bd:	e9 e4 fc ff ff       	jmp    4a6 <eliminacaoGauss+0x4a6>

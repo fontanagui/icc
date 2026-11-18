@@ -25,15 +25,18 @@ FAMILIAS = {"tempo": ("tempo",), "banda": GRUPOS[0], "cache": GRUPOS[1],
             "flops": ("FLOPS_DP", "FLOPS_AVX")}
 EIXOS = {"tempo": "Tempo acumulado [ms]", "banda": "Banda [MB/s]", "cache": "Taxa de faltas [fração]",
          "flops": "Taxa [MFLOP/s]"}
-CORES = dict(zip(VERSOES, ("#25548B", "#B74624")))
-ROTULOS = dict(zip(VERSOES, ("Baseline", "Otimizada")))
+CORES = {"baseline": "#25548B", "otimizada": "#B74624",
+         "baseline-original": "#5981B0", "otimizada-original": "#CB775A"}
+ROTULOS = {"baseline": "Básica revisada", "otimizada": "Otimizada revisada",
+           "baseline-original": "Básica original", "otimizada-original": "Otimizada original"}
 
 
 def agrega(pasta, meta):
     """Exige a grade completa de tamanhos, versões, regiões e repetições."""
     grupos = meta["grupos_concluidos"]
+    versoes = meta.get("versoes", VERSOES)
     chaves = {(grupo, regiao, versao, n): {} for grupo in grupos for regiao in REGIOES
-              for versao in VERSOES for n in TAMANHOS}
+              for versao in versoes for n in TAMANHOS}
     esperadas = set(range(1, meta["repeticoes"] + 1))
     with (pasta / "medicoes.csv").open(encoding="utf-8", newline="") as arquivo:
         for linha in csv.DictReader(arquivo):
@@ -68,19 +71,41 @@ def escreve_resumo(pasta, resumo):
             escritor.writerow((*chave, *(valores[campo] for campo in campos)))
 
 
+def escreve_comparacao(pasta, resumo):
+    """Calcula speedup pela razão entre as médias dos tempos."""
+    pares = [("baseline", "otimizada")]
+    if ("tempo", REGIOES[0], "baseline-original", TAMANHOS[0]) in resumo:
+        pares.extend([("baseline-original", "otimizada-original"),
+                      ("baseline-original", "baseline"), ("otimizada-original", "otimizada")])
+    with (pasta / "comparacao.csv").open("w", encoding="utf-8", newline="") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerow(("n", "regiao", "referencia", "comparada", "media_referencia_ms",
+                           "media_comparada_ms", "speedup"))
+        for antes, depois in pares:
+            for regiao in REGIOES:
+                for n in TAMANHOS:
+                    a = resumo["tempo", regiao, antes, n]["media"]
+                    b = resumo["tempo", regiao, depois, n]["media"]
+                    escritor.writerow((n, regiao, antes, depois, a, b, a / b))
+
+
 def gera_figura(pasta, familia, regiao, grupos, dados, meta):
     """Gera uma figura vetorial com a mesma cor para cada versão entre painéis."""
     fig, ax = plt.subplots(figsize=(6.8, 3.03), layout="constrained")
     for grupo in grupos:
         avx = grupo == "FLOPS_AVX"
-        for versao in VERSOES:
+        versoes = (*VERSOES, *(v for v in CORES if v.endswith("-original") and
+                              (grupo, regiao, v, TAMANHOS[0]) in dados))
+        for versao in versoes:
             valores = [dados[grupo, regiao, versao, n] for n in TAMANHOS]
             medias = [v["media"] for v in valores]
             if grupo == "tempo" and any(media <= 0 for media in medias):
                 raise ValueError(f"tempo médio não positivo em {regiao}/{versao}")
             cor = CORES[versao]
-            nome = f"{ROTULOS[versao]} · {grupo}" if familia == "flops" else ROTULOS[versao]
-            ax.plot(TAMANHOS, medias, color=cor, linestyle="--" if avx else "-",
+            rotulo = ROTULOS[versao] if "versoes" in meta else versao.capitalize()
+            nome = f"{rotulo} · {grupo}" if familia == "flops" else rotulo
+            estilo = ":" if versao.endswith("-original") else "-"
+            ax.plot(TAMANHOS, medias, color=cor, linestyle=estilo,
                     marker="s" if avx else "o", markersize=3.3, linewidth=1.5, label=nome)
             if familia == "tempo":
                 inferior = [v["media"] - v["desvio"] if v["media"] > v["desvio"] else float("nan")
@@ -113,6 +138,25 @@ def gera_figura(pasta, familia, regiao, grupos, dados, meta):
     return nome
 
 
+def gera_speedup(pasta, dados):
+    """Mostra o ganho da revisão em relação à mesma versão original."""
+    fig, paineis = plt.subplots(1, 2, figsize=(9, 3.5), sharey=True, layout="constrained")
+    for ax, versao in zip(paineis, VERSOES):
+        for regiao in REGIOES:
+            razoes = [dados["tempo", regiao, f"{versao}-original", n]["media"]
+                      / dados["tempo", regiao, versao, n]["media"] for n in TAMANHOS]
+            ax.plot(TAMANHOS, razoes, marker="o", markersize=3, label=REGIAO[regiao])
+        ax.axhline(1, linestyle="--", color="#626B75", linewidth=1)
+        ax.set_xscale("log")
+        ax.set_xlabel("Dimensão do sistema (N)")
+        ax.set_title(ROTULOS[versao])
+        ax.grid(axis="y", alpha=0.25)
+    paineis[0].set_ylabel("Speedup (original / revisada)")
+    paineis[1].legend(fontsize=8)
+    fig.savefig(pasta / "speedup-revisao.pdf")
+    plt.close(fig)
+
+
 def tex(texto):
     """Protege dados de ambiente e métrica no LaTeX gerado."""
     substituicoes = {"\\": r"\textbackslash{}", "_": r"\_", "%": r"\%", "&": r"\&", "#": r"\#",
@@ -135,7 +179,7 @@ def descricao_ambiente(meta):
              rf"O sistema identificou o processador {cpu}. O compilador foi \emph{{{gcc}}}. ")
     tipo = re.search(r"(?mi)^CPU type:\s*([^\n\r]+)", meta.get("topologia_likwid", ""))
     if tipo and tipo[1].strip() != "nil":
-        texto += f"O LIKWID identificou a microarquitetura como {tex(tipo[1].strip())}. "
+        texto += rf"O LIKWID exibiu a classificação \emph{{{tex(tipo[1].strip())}}}. "
     elif meta.get("alvo_gcc"):
         texto += rf"A detecção de arquitetura do GCC selecionou \texttt{{{tex(meta['alvo_gcc'])}}}. "
     base = meta.get("lscpu", {})
@@ -202,12 +246,12 @@ def explica(familia, regiao, grupos, dados):
                 + fenomenos[regiao] + dispersao)
     if familia == "banda":
         fenomenos = {"Newton_Total": "O fluxo abrange as passagens por X, pelo resíduo e pela banda da Jacobiana.",
-                     "Jacobiana": "A baseline escreve as três diagonais, enquanto a otimizada escreve só a principal.",
+                     "Jacobiana": "As duas versões escrevem somente a diagonal principal nessa região.",
                      "Sistema_Linear": "O caminho de Thomas percorre a diagonal principal e o lado direito."}
         return base + " Os valores são taxas em MB/s. " + fenomenos[regiao] + " A taxa também depende da duração da região."
     if familia == "cache":
         fenomenos = {"Newton_Total": "A troca de buffers reutiliza as mesmas áreas entre passos.",
-                     "Jacobiana": "As gravações das diagonais laterais ampliam o conjunto acessado pela baseline.",
+                     "Jacobiana": "O laço lê X e escreve a diagonal principal sequencialmente.",
                      "Sistema_Linear": "O percurso reverso reutiliza parte das linhas de cache acessadas na eliminação."}
         return (base + f" A diferença baseline menos otimizada foi {decimal(100 * (b - o), 2)} pontos percentuais. "
                 + fenomenos[regiao] + " A taxa é relativa às referências contadas pelo grupo da CPU.")
@@ -240,6 +284,23 @@ def escreve_latex(pasta, destino, figuras, dados, meta):
              f"\\newcommand{{\\ResumoMedido}}{{{resumo}}}",
              f"\\newcommand{{\\AmbienteMedido}}{{{descricao_ambiente(meta)}}}",
              r"\newcommand{\ResultadosMedidos}{%"]
+    if ("tempo", REGIOES[0], "otimizada-original", n) in dados:
+        texto.extend([r"\begin{table}[H]", r"\centering", r"\small",
+                      r"\begin{tabular}{@{}lrrrr@{}}", r"\toprule",
+                      r"Região & Básica ant. & Básica rev. & Otim. ant. & Otim. rev.\\", r"\midrule"])
+        for regiao in REGIOES:
+            ordem = ("baseline-original", "baseline", "otimizada-original", "otimizada")
+            valores = [decimal(dados["tempo", regiao, v, n]["media"]) for v in ordem]
+            texto.append(f"{REGIAO[regiao]} & " + " & ".join(valores) + r"\\")
+        texto.extend([r"\bottomrule", r"\end{tabular}",
+                      f"\\caption{{Tempos médios em ms para $N={n}$ e 25 passos.}}",
+                      r"\end{table}"])
+        nome_speedup = "speedup-revisao.pdf"
+        shutil.copyfile(pasta / "graficos" / nome_speedup, destino / "figuras" / nome_speedup)
+        texto.extend([r"\begin{figure}[H]", r"\centering",
+                      f"\\includegraphics[width=0.96\\linewidth]{{{nome_speedup}}}",
+                      r"\caption{Razão entre os tempos médios da versão original e da revisada.}",
+                      r"\end{figure}"])
     for familia, regiao, grupos_fig, nome in figuras:
         shutil.copyfile(pasta / "graficos" / nome, destino / "figuras" / nome)
         titulo = f"{TITULOS[familia]} para {REGIAO_PROSA[regiao]}."
@@ -274,9 +335,12 @@ def main():
     if "tempo" not in meta["grupos_concluidos"]:
         raise ValueError("uma campanha de tempo completa é necessária")
     escreve_resumo(pasta, dados)
+    escreve_comparacao(pasta, dados)
     graficos = pasta / "graficos"
     graficos.mkdir(exist_ok=True)
     figuras = []
+    if ("tempo", REGIOES[0], "otimizada-original", TAMANHOS[0]) in dados:
+        gera_speedup(graficos, dados)
     for familia, opcoes in FAMILIAS.items():
         grupos = [g for g in opcoes if g in meta["grupos_concluidos"]]
         if grupos:
@@ -285,7 +349,8 @@ def main():
                 figuras.append((familia, regiao, grupos, nome))
     if args.relatorio:
         escreve_latex(pasta, args.relatorio, figuras, dados, meta)
-    print(f"{len(figuras)} gráficos gerados em {graficos}.")
+    extra = int(("tempo", REGIOES[0], "otimizada-original", TAMANHOS[0]) in dados)
+    print(f"{len(figuras) + extra} gráficos gerados em {graficos}.")
 
 
 if __name__ == "__main__":

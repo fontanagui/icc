@@ -1,0 +1,4 @@
+python3 benchmark/coleta.py --last-constant 1 --out experimentos/campanha-final --cpu 2 --repeticoes 10 --original experimentos/fonte-original
+Coletando tempo na CPU lógica 2...
+Resultados em /home/bcc/psa25/Downloads/ICC/icc/experimentos/campanha-final. Grupos concluídos: tempo.
+make: *** [Makefile:114: benchmark] Error 2

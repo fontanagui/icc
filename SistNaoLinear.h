@@ -5,8 +5,8 @@
 
 #define ALINHAMENTO 64
 
-/* Calcula as funções de Broyden no vetor FX. */
-void calcF( double *restrict FX, const double *restrict X, size_t n );
+/* Calcula o lado direito -F(X) do passo de Newton. */
+void calcMenosF( double *restrict b, const double *restrict X, size_t n );
 
 /* Calcula apenas a diagonal principal da matriz Jacobiana. */
 void calcJ( double *restrict diagonal, const double *restrict X, size_t n );

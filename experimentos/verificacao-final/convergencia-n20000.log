@@ -1,0 +1,2 @@
+broyden: N=20000, 5 passos, resíduo final 1.11022e-15, anterior 7.54805e-10
+broyden_baseline: N=20000, 5 passos, resíduo final 1.11022e-15, anterior 7.54805e-10

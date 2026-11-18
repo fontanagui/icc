@@ -1,9 +1,22 @@
 # Produtos de compilação e caches
 **/build/
 **/broyden
+/.build/
+/broyden_baseline
+/broyden_likwid
+/broyden_baseline_likwid
+/broyden_san
+/broyden_baseline_san
 *.o
 *.d
 __pycache__/
 *.pyc
 # Resultados locais: mantenha os selecionados para o artigo separadamente.
 /resultados/
+
+# Cópias de trabalho e ferramentas usadas nas campanhas
+/experimentos/fonte-original/
+/experimentos/estagios/*-broyden*
+/experimentos/verificacao-inicial/*.deb
+/experimentos/verificacao-inicial/likwid-portatil/
+/experimentos/*/bruto/
