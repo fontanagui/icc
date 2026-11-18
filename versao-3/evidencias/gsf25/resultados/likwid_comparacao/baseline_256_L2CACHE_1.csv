@@ -1,0 +1,69 @@
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region NEWTON,Group 1 Raw,L2CACHE,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.050003,
+call count,1,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,307721300
+CPU_CLK_UNHALTED_CORE,FIXC1,152798700
+CPU_CLK_UNHALTED_REF,FIXC2,141613900
+L2_TRANS_ALL_REQUESTS,PMC0,92406880
+L2_RQSTS_MISS,PMC1,19526750
+TABLE,Region NEWTON,Group 1 Metric,L2CACHE,7
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.0500,
+Runtime unhalted [s],0.0449,
+Clock [MHz],3668.5352,
+CPI,0.4965,
+L2 request rate,0.3003,
+L2 miss rate,0.0635,
+L2 miss ratio,0.2113,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region JACOBIANA,Group 1 Raw,L2CACHE,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.001390,
+call count,25,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,21394040
+CPU_CLK_UNHALTED_CORE,FIXC1,4595195
+CPU_CLK_UNHALTED_REF,FIXC2,4257018
+L2_TRANS_ALL_REQUESTS,PMC0,1010767
+L2_RQSTS_MISS,PMC1,263637
+TABLE,Region JACOBIANA,Group 1 Metric,L2CACHE,7
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.0014,
+Runtime unhalted [s],0.0014,
+Clock [MHz],3670.0956,
+CPI,0.2148,
+L2 request rate,0.0472,
+L2 miss rate,0.0123,
+L2 miss ratio,0.2608,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region SISTEMA_LINEAR,Group 1 Raw,L2CACHE,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.043246,
+call count,25,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,286042400
+CPU_CLK_UNHALTED_CORE,FIXC1,147567400
+CPU_CLK_UNHALTED_REF,FIXC2,136766400
+L2_TRANS_ALL_REQUESTS,PMC0,91300750
+L2_RQSTS_MISS,PMC1,19235660
+TABLE,Region SISTEMA_LINEAR,Group 1 Metric,L2CACHE,7
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.0432,
+Runtime unhalted [s],0.0434,
+Clock [MHz],3668.5119,
+CPI,0.5159,
+L2 request rate,0.3192,
+L2 miss rate,0.0672,
+L2 miss ratio,0.2107,

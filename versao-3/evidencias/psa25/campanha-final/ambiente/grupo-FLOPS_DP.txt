@@ -1,0 +1,6 @@
+$ likwid-perfctr -H -g FLOPS_DP
+ERROR - [./src/configuration.c:default_configuration:124] Unable to get path to access daemon. Maybe your PATH environment variable does not contain the folder where you installed it or the file was moved away / not copied to that location?
+ERROR - [./src/configuration.c:default_configuration:124] Unable to get path to access daemon. Maybe your PATH environment variable does not contain the folder where you installed it or the file was moved away / not copied to that location?
+Cannot use performance monitoring with perf_event_paranoid = 3
+
+[status 1]

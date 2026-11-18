@@ -1,0 +1,369 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.25cm]{geometry}
+\usepackage{amsmath,booktabs,caption,graphicx,microtype}
+\usepackage[hidelinks]{hyperref}
+
+\hypersetup{
+  pdftitle={Método de Newton para o sistema tridiagonal de Broyden},
+  pdfauthor={Guilherme Fontana e Pedro Stahel de Azevedo},
+  pdfsubject={CI1164 — Introdução à Computação Científica}
+}
+\captionsetup{font=small,labelfont=bf,hypcap=false}
+
+\title{\textbf{Método de Newton para o sistema tridiagonal de Broyden}\\[0.25em]
+       \large Comparação entre eliminação densa, em banda e pelas extremidades}
+\author{Guilherme Fontana (\texttt{gsf25}) \and Pedro Stahel de Azevedo (\texttt{psa25}, GRR20252084)}
+\date{Departamento de Informática, Universidade Federal do Paraná\\
+      CI1164 — Introdução à Computação Científica\\
+      18 de novembro de 2026}
+
+\newcommand{\painel}[3]{%
+  \begin{minipage}[t]{0.485\linewidth}
+    \vspace{0pt}%
+    \centering
+    \includegraphics[width=\linewidth]{#1}
+    \captionof{figure}{#2}\label{#3}
+  \end{minipage}}
+\newcommand{\tempo}{resultados/integrada/graficos/tempo-}
+\newcommand{\hardware}{evidencias/gsf25/resultados/graficos/}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Comparamos três implementações do método de Newton aplicado ao sistema
+tridiagonal de Broyden. A referência usa uma matriz densa, a segunda
+implementação usa eliminação em banda com pivoteamento parcial e a
+terceira elimina pelas duas extremidades quando há uma garantia sobre
+os pivôs. Em um Intel Core i5-7500, com 25 passos e $N=1000$, os tempos
+médios do cálculo de Newton foram de $3{,}740$~s, $0{,}401$~ms e
+$0{,}151$~ms, respectivamente. Em $N=20000$, o tempo caiu de
+$8{,}06$~ms em banda para $3{,}03$~ms na versão otimizada. Os vetores
+finais concordaram nas dimensões submetidas às mesmas verificações
+numéricas. Uma campanha anterior com LIKWID complementa a análise de
+cache, banda e vazão aritmética na comparação entre a referência densa
+e a primeira implementação tridiagonal.
+\end{abstract}
+
+\noindent\textbf{Palavras-chave.} Método de Newton, sistema de Broyden,
+matriz tridiagonal, desempenho.
+
+\section{Introdução}
+
+Quando a Jacobiana de um sistema não linear é tridiagonal, é possível
+construí-la e resolver o sistema de Newton com trabalho proporcional ao
+número de incógnitas. Essa mudança de estrutura explica a primeira parte
+do ganho medido. Dentro do custo linear, o número de acessos à memória e
+a dependência entre divisões ainda influenciam o tempo. Este trabalho
+mede esses dois efeitos com três implementações em C que compartilham
+o mesmo laço de Newton, a mesma interface e o mesmo relógio.
+
+\section{Formulação}
+
+Seja $x=(x_1,\ldots,x_N)^\mathsf{T}$, com vizinhos de contorno
+$x_0=x_{N+1}=0$. O sistema é $F(x)=0$, onde
+\begin{equation}
+  F_i(x)=(3-2x_i)x_i-x_{i-1}-2x_{i+1}+c_i,\qquad 1\leq i\leq N.
+  \label{eq:broyden}
+\end{equation}
+Usamos $c_i=1$ para $i<N$. A campanha integrada adota $c_N=0$, como no
+gerador preservado com a referência do trabalho. Na formulação clássica
+de Moré, Garbow e Hillstrom \cite{more}, $c_N=1$. A figura oficial do
+enunciado estava indisponível para conferência. A opção
+\texttt{LAST\_CONSTANT} permite compilar as duas variantes, que têm
+a mesma Jacobiana. O parâmetro de entrada que inicializa todas as
+incógnitas é denotado por $a$ para distingui-lo do vizinho de contorno.
+
+A diagonal principal da Jacobiana é $d_i=3-4x_i$. A subdiagonal vale
+$-1$ e a superdiagonal vale $-2$. A cada passo $k$, calculamos $s$ por
+$J(x^{(k)})s=-F(x^{(k)})$ e fazemos $x^{(k+1)}=x^{(k)}+s$.
+Com $\varepsilon>0$, o programa verifica se $\|F(x^{(k)})\|_\infty
+\leq\varepsilon$ antes da resolução linear. Com $\varepsilon=0$, o
+laço prossegue até o limite de iterações, sujeito a falha numérica.
+
+\clearpage
+\section{Implementações}
+
+\paragraph{Referência densa.} A matriz ocupa um bloco de $N^2$ valores,
+com um vetor de ponteiros para as linhas. A Jacobiana é montada por
+inteiro, inclusive os zeros estruturais. A eliminação de Gauss busca
+o maior pivô em módulo na coluna ativa e atualiza toda a submatriz
+restante. As trocas de linha permutam ponteiros. No termo dominante,
+a eliminação faz aproximadamente $2N^3/3$ operações de soma e
+multiplicação.
+
+\paragraph{Eliminação em banda.} A construção da Jacobiana calcula
+a diagonal principal. A subdiagonal é conhecida e a primeira
+superdiagonal recebe $-2$ no início da eliminação. O pivoteamento
+compara a linha corrente com a seguinte. Uma troca pode criar uma
+segunda superdiagonal, prevista no armazenamento e usada na
+retrossubstituição. Essa estrutura também é usada na rotina
+\texttt{DGTSV} do LAPACK \cite{lapack}.
+
+\paragraph{Eliminação pelas extremidades.} Quando todos os $d_i$ são
+finitos e $|d_i|\geq 3$, a versão otimizada usa duas recorrências
+independentes até a linha central. A partir da esquerda, o pivô
+ajustado é $p_i=d_i-2/p_{i-1}$. A partir da direita, a recorrência
+usa $p_{i+1}$. O primeiro pivô de cada lado tem módulo de pelo menos
+$3$. Se o pivô anterior tem módulo de pelo menos $2$, seu efeito no
+seguinte é de no máximo $1$ e o novo pivô tem módulo de pelo menos
+$2$. A linha central recebe as duas contribuições e seu pivô tem
+módulo de pelo menos $1$.
+
+O código calcula o inverso de cada pivô uma vez e guarda os
+coeficientes necessários para recuperar a solução da linha central
+até as extremidades. A intercalação das duas cadeias permite
+sobrepor parte da latência das divisões escalares no mesmo núcleo.
+Na ausência da condição de pivôs, o programa usa a eliminação em
+banda com trocas. A versão otimizada também separa as bordas no
+cálculo de $-F$, alinha os vetores a 64 bytes e informa esse
+alinhamento ao compilador nos laços apropriados.
+
+\begin{center}
+\captionof{table}{Ordem do custo por atualização de Newton.}
+\begin{tabular}{lccc}
+\toprule
+Implementação & Construção de $J$ & Resolução linear & Memória de trabalho \\
+\midrule
+Densa & $O(N^2)$ & $O(N^3)$ & $O(N^2)$ \\
+Em banda & $O(N)$ & $O(N)$ & $O(N)$ \\
+Otimizada & $O(N)$ & $O(N)$ & $O(N)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Protocolo experimental}
+
+As medições integradas usaram Linux x86-64 e GCC 14.2.0, com
+\texttt{-O3 -march=native -mavx -ffp-contract=fast}. O processador
+Intel Core i5-7500 \cite{intel} tem L1 de dados de 32~KiB, L2 de
+256~KiB por núcleo e L3 compartilhada de 6~MiB na estação medida.
+As execuções foram fixadas na CPU lógica 2. Usamos $a=-1$,
+$\varepsilon=0$ e 25 atualizações para as dimensões 32, 64, 128, 256,
+512, 1000, 2000, 4000, 8000, 9000, 10000 e 20000.
+A coleta densa foi limitada a $N\leq1000$ pelo custo cúbico.
+Cada combinação teve um aquecimento descartado e dez repetições.
+A ordem das dimensões foi embaralhada a cada rodada e a ordem das
+versões foi alternada.
+
+O relógio \texttt{CLOCK\_MONOTONIC\_RAW} registra o tempo acumulado de
+Newton e das duas regiões internas, Jacobiana e sistema linear.
+O cálculo de Newton é medido a cada atualização. A saída é
+formatada entre as regiões medidas e descartada em \texttt{/dev/null}.
+O tempo de parede inclui a formatação, a inicialização e o encerramento.
+Os resultados de tempo usam média e desvio-padrão amostral.
+
+\clearpage
+\section{Validação e resultados de tempo}
+
+A suíte compara os passos até $N=10$ com uma implementação densa
+independente em Python e verifica o resíduo do sistema linear.
+As três versões concordaram nos vetores finais dos casos em comum
+até $N=512$, com tolerâncias absoluta de $2\cdot10^{-12}$ e relativa
+de $2\cdot10^{-11}$. As duas tridiagonais tiveram resíduo final
+máximo de $1{,}11\cdot10^{-15}$ na série de 25 passos. Também foram
+verificados casos com troca de linha, matriz singular, entradas
+inválidas e limite de zero atualizações. Os testes foram executados
+para os dois valores de $c_N$.
+
+\medskip
+\noindent
+\painel{\tempo newton_total.pdf}{Tempo acumulado de Newton nas 25 atualizações.}{fig:tempo-newton}
+\hfill
+\painel{\tempo jacobiana.pdf}{Tempo de construção das Jacobianas.}{fig:tempo-j}
+\par\medskip
+\noindent
+\painel{\tempo sistema_linear.pdf}{Tempo de resolução dos sistemas lineares.}{fig:tempo-linear}
+\hfill
+\begin{minipage}[t]{0.47\linewidth}
+  \vspace{0pt}
+  \captionsetup{skip=6pt}
+  \captionof{table}{Tempo de Newton em ms. Os valores são média $\pm$ desvio-padrão.}
+  \label{tab:tempo}
+  \centering\small
+  \begin{tabular}{@{}lcc@{}}
+  \toprule
+  Versão & $N=1000$ & $N=20000$ \\
+  \midrule
+  Densa & $3740\pm420$ & \textemdash \\
+  Em banda & $0{,}401\pm0{,}027$ & $8{,}06\pm0{,}22$ \\
+  Otimizada & $0{,}151\pm0{,}014$ & $3{,}03\pm0{,}31$ \\
+  \bottomrule
+  \end{tabular}
+  \par\smallskip
+  \footnotesize O traço indica ausência de medição.
+\end{minipage}
+
+\medskip
+Nos gráficos de tempo, os dois eixos estão em escala logarítmica.
+A faixa em torno da média representa um desvio-padrão amostral.
+Em $N=1000$, a mudança da matriz densa para a banda reduziu o
+tempo médio de Newton em cerca de $9\,300$ vezes. A resolução linear
+respondeu por $99{,}4\%$ do tempo da referência densa nesse ponto
+(Figuras~\ref{fig:tempo-newton} a \ref{fig:tempo-linear}). Em
+$N=20000$, a matriz densa ocuparia $3{,}2$~GB só para os
+coeficientes. As versões tridiagonais reservam cinco vetores, que
+somam $800$~kB nessa dimensão.
+
+Em $N=20000$, a otimizada foi $2{,}66$ vezes mais rápida que a
+versão em banda no cálculo de Newton. O tempo linear caiu de
+$6{,}73$ para $1{,}97$~ms. As médias da Jacobiana foram próximas,
+$0{,}335$ e $0{,}350$~ms. Em um ensaio anterior com $c_N=1$,
+a mudança isolada da eliminação por uma ponta para duas reduziu
+o tempo linear de $3{,}54$ para $1{,}99$~ms no mesmo tamanho.
+Esse ensaio consta nos dados complementares e ajuda a atribuir
+parte do ganho à organização das divisões.
+
+No processo completo, as medianas foram $136{,}39$~ms em banda
+e $131{,}15$~ms na otimizada, também em $N=20000$. Cada execução
+formata $520\,000$ linhas de valores, somando o vetor inicial e as
+25 atualizações. A formatação tem peso mesmo com a saída
+descartada, o que limita o ganho de tempo de parede.
+
+\clearpage
+\section{Contadores de hardware}
+
+Os contadores das Figuras~\ref{fig:l2-newton} a \ref{fig:mem-linear}
+vêm de uma campanha anterior com LIKWID 5.5.2 \cite{likwid}, na
+CPU lógica 3 de uma estação com o mesmo modelo de processador.
+\emph{Baseline} designa a referência densa original e
+\emph{otimizada} designa a primeira versão tridiagonal, com
+pivoteamento e quatro vetores de coeficientes. A campanha usou
+$c_N=0$, $a=-1$ e 25 passos, com uma execução por grupo, dimensão
+e versão. Há pontos densos até $N=2000$ e tridiagonais até $N=20000$.
+Os CSVs brutos e os fontes correspondentes acompanham o relatório.
+
+A coleta integrada usou os relógios do programa. O valor de
+\texttt{perf\_event\_paranoid} era 3 e \texttt{/dev/cpu} estava ausente.
+Uma sonda anterior com LIKWID 5.4.1 no ambiente
+restrito registrou bloqueio de acesso à unidade de monitoramento.
+A eliminação pelas extremidades segue sem uma série de contadores.
+As medidas desta seção descrevem apenas os executáveis da campanha
+anterior.
+
+\subsection{Faltas na cache L2}
+
+\noindent
+\painel{\hardware l2_newton.pdf}{Fração de solicitações a L2 que resultaram em falta no cálculo de Newton.}{fig:l2-newton}
+\hfill
+\painel{\hardware l2_jacobiana.pdf}{Fração de faltas a L2 na construção da Jacobiana.}{fig:l2-j}
+\par\medskip
+\noindent
+\painel{\hardware l2_sistema_linear.pdf}{Fração de faltas a L2 na resolução linear.}{fig:l2-linear}
+
+\medskip
+Na resolução linear densa, a fração de faltas foi $0{,}0181$ em
+$N=128$ e $0{,}2075$ em $N=2000$ (Figura~\ref{fig:l2-linear}).
+A matriz de $128$~KiB em $N=128$ cabe na L2 de $256$~KiB. Em
+$N=2000$, ela ocupa $32$~MB e ultrapassa também a capacidade de
+L3. A fração tridiagonal em $N=2000$ foi $0{,}2119$ na mesma
+região. Frações próximas podem corresponder a números de
+solicitações e de faltas muito diferentes. Como cada ponto
+vem de uma execução, diferenças pequenas merecem cautela.
+
+\clearpage
+\subsection{Operações de ponto flutuante}
+
+\noindent
+\painel{\hardware flops_newton.pdf}{Vazão aritmética em Newton.}{fig:dp-newton}
+\hfill
+\painel{\hardware flops_jacobiana.pdf}{Vazão aritmética na Jacobiana.}{fig:dp-j}
+\par\medskip
+\noindent
+\painel{\hardware flops_sistema_linear.pdf}{Vazão aritmética na resolução linear.}{fig:dp-linear}
+
+\medskip
+As séries \texttt{FLOPS\_DP} e \texttt{FLOPS\_AVX} das
+Figuras~\ref{fig:dp-newton} a \ref{fig:dp-linear} vieram de
+execuções independentes. Para estimar a participação das
+operações AVX dentro de uma execução, usamos as métricas
+\emph{DP} e \emph{AVX DP} do próprio grupo \texttt{FLOPS\_DP}.
+Em $N=2000$, a resolução linear densa registrou
+$2684$~MFLOP/s em precisão dupla, dos quais $2676$~MFLOP/s
+vieram de operações empacotadas de 256 bits. A eliminação
+tridiagonal com pivoteamento registrou $537$~MFLOP/s na
+mesma região e dimensão. A densa alcança vazão aritmética
+maior em laços que operam sobre várias colunas consecutivas.
+A eliminação em banda resolve o sistema em menos tempo porque
+faz um número muito menor de operações.
+
+Na Jacobiana tridiagonal, em $N=1000$, a taxa medida foi de
+$1024$~MFLOP/s em precisão dupla e $1015$~MFLOP/s em AVX DP
+dentro da mesma execução. Isso é compatível com a vetorização
+do cálculo de $3-4x_i$ em um laço com acessos consecutivos.
+A montagem densa passa a maior parte da região gravando
+constantes e zeros, atividades que demandam tráfego de
+memória e poucas operações de ponto flutuante.
+
+\clearpage
+\subsection{Banda de memória}
+
+\noindent
+\painel{\hardware mem_newton.pdf}{Banda de DRAM reportada para Newton.}{fig:mem-newton}
+\hfill
+\painel{\hardware mem_jacobiana.pdf}{Banda de DRAM reportada para a Jacobiana.}{fig:mem-j}
+\par\medskip
+\noindent
+\painel{\hardware mem_sistema_linear.pdf}{Banda de DRAM reportada para a resolução linear.}{fig:mem-linear}
+\hfill
+\begin{minipage}[t]{0.475\linewidth}
+  \vspace{0pt}\small
+  O grupo \texttt{MEM} contabiliza leituras e escritas de DRAM no
+  soquete. Em regiões de poucos microssegundos, tráfego de fundo e
+  instrumentação podem afetar a leitura. A linha pontilhada marca
+  $38{,}4$~GB/s, teto nominal de dois canais DDR4-2400 \cite{intel}.
+  Marcadores vazados indicam valores acima desse teto. Em $N=32$,
+  a Jacobiana tridiagonal reportou $2{,}10$~TB/s, um valor
+  incompatível com a banda da plataforma.
+\end{minipage}
+
+\medskip
+Na referência densa com $N=2000$, o volume registrado para
+Newton foi $268{,}95$~GB e a sua região interna de resolução
+linear registrou $1091{,}66$~GB. O ponto marcado com uma cruz
+na Figura~\ref{fig:mem-newton} tem banda abaixo do teto e volume
+inconsistente. A descrição do grupo prevê a possibilidade de
+transbordamento dos contadores em intervalos longos. Esses
+pontos foram preservados nos dados e excluídos da interpretação
+quantitativa de ganhos em banda.
+
+\section{Conclusão}
+
+A estrutura tridiagonal permitiu reduzir o custo por atualização
+de $O(N^3)$ para $O(N)$ na resolução linear e de $O(N^2)$ para
+$O(N)$ no armazenamento. A eliminação pelas extremidades
+reduziu o custo dentro do regime linear, com ganho de $2{,}66$
+vezes no cálculo de Newton em $N=20000$ e concordância
+numérica nos casos verificados. O ganho de tempo de parede
+foi menor devido à formatação dos vetores. Os contadores da
+campanha anterior ajudam a interpretar a referência densa e
+a eliminação em banda. Uma medição de hardware dos binários
+integrados é necessária para caracterizar a eliminação pelas
+extremidades com as mesmas métricas.
+
+\small
+\begin{thebibliography}{9}
+\bibitem{more}
+J. J. Moré, B. S. Garbow e K. E. Hillstrom.
+\textit{Testing Unconstrained Optimization Software}. ACM Transactions on
+Mathematical Software, 7(1), 17–41, 1981.
+\href{https://doi.org/10.1145/355934.355936}{DOI 10.1145/355934.355936}.
+
+\bibitem{lapack}
+Netlib. \textit{LAPACK: DGTSV}.
+\href{https://netlib.org/lapack/explore-html/d6/ddb/group__gtsv_ga6b06a11b8e2dced10bc9cd3c20a09484.html}{Documentação da rotina}.
+
+\bibitem{intel}
+Intel. \textit{Intel Core i5-7500 Processor Specifications}.
+\href{https://www.intel.com/content/www/us/en/products/sku/97123/intel-core-i57500-processor-6m-cache-up-to-3-80-ghz/specifications.html}{Ficha técnica}.
+
+\bibitem{likwid}
+J. Treibig, G. Hager e G. Wellein.
+\textit{LIKWID: A Lightweight Performance-Oriented Tool Suite for x86 Multicore Environments}.
+2010. \href{https://arxiv.org/abs/1004.4431}{arXiv:1004.4431}.
+\end{thebibliography}
+\end{document}

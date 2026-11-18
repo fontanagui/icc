@@ -1,0 +1,5 @@
+$ likwid-topology -v
+ERROR - [./src/configuration.c:default_configuration:124] Unable to get path to access daemon. Maybe your PATH environment variable does not contain the folder where you installed it or the file was moved away / not copied to that location?
+likwid-topology -- Version 5.4.1 (commit: 0123456789)
+
+[status 0]

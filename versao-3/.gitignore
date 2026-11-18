@@ -1,0 +1,16 @@
+# Produtos de compilação e caches
+**/build/
+**/broyden
+/.build/
+/broyden_baseline
+/broyden_likwid
+/broyden_baseline_likwid
+/broyden_san
+/broyden_baseline_san
+/broyden_densa
+/broyden_densa_likwid
+/broyden_densa_san
+*.o
+*.d
+__pycache__/
+*.pyc

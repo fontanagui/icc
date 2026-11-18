@@ -1,0 +1,31 @@
+    Group name	Description
+--------------------------------------------------------------------------------
+            L2	L2 cache bandwidth in MBytes/s
+      RECOVERY	Recovery duration
+     UOPS_EXEC	UOPs execution
+  CYCLE_STALLS	Cycle Activities (Stalls)
+      FLOPS_DP	Double Precision MFLOP/s
+        ICACHE	Instruction cache miss rate/ratio
+          PERF	Perf counters
+        MEM_DP	Overview of arithmetic and main memory performance
+            L3	L3 cache bandwidth in MBytes/s
+     FLOPS_AVX	Packed AVX MFLOP/s
+   FALSE_SHARE	False sharing
+   UOPS_RETIRE	UOPs retirement
+           MEM	Memory bandwidth in MBytes/s
+         CLOCK	Power and Energy consumption
+       L2CACHE	L2 cache miss rate/ratio
+     TLB_INSTR	L1 Instruction TLB miss rate/ratio
+        MEM_SP	Overview of arithmetic and main memory performance
+CYCLE_ACTIVITY	Cycle Activities
+        DIVIDE	Divide unit information
+        BRANCH	Branch prediction miss rate/ratio
+       L3CACHE	L3 cache miss rate/ratio
+          UOPS	UOPs execution info
+      FLOPS_SP	Single Precision MFLOP/s
+           TMA	Top down cycle allocation
+        ENERGY	Power and Energy consumption
+    UOPS_ISSUE	UOPs issueing
+      TLB_DATA	L2 data TLB miss rate/ratio
+    PORT_USAGE	Execution port utilization
+          DATA	Load to store ratio

@@ -1,0 +1,65 @@
+$ make -B LAST_CONSTANT=0 all baseline densa
+NewtonSNL.c:132:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:125:10: optimized: basic block part vectorized using 32 byte vectors
+SistNaoLinear.c:31:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:31:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+utils.c: In function 'prnVetor':
+utils.c:42:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function 'prnMatriz':
+utils.c:48:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+EliminacaoGauss.c:13:24: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:84:20: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:84:20: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:132:20: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:125:10: optimized: basic block part vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+utils.c: In function 'prnVetor':
+utils.c:42:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function 'prnMatriz':
+utils.c:48:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+EliminacaoGauss.c:13:24: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:132:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:47:20: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:79:20: optimized: loop vectorized using 16 byte vectors
+utils.c: In function 'prnVetor':
+utils.c:42:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   42 |   for (int i = 0; i < n; ++i)
+      |                     ^
+utils.c: In function 'prnMatriz':
+utils.c:48:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   48 |   for (int i = 0; i < n; ++i) {
+      |                     ^
+utils.c:49:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+   49 |     for (int j = 0; j < n; ++j)
+      |                       ^
+Densa.c:21:27: optimized: loop vectorized using 32 byte vectors
+Densa.c:98:35: optimized: loop vectorized using 32 byte vectors
+Densa.c:98:35: optimized: loop vectorized using 16 byte vectors
+Densa.c:89:39: optimized: loop vectorized using 32 byte vectors
+Densa.c:89:39: optimized:  loop versioned for vectorization because of possible aliasing
+Densa.c:89:39: optimized: loop vectorized using 16 byte vectors
+
+[status 0]

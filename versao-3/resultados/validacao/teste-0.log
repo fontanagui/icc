@@ -1,0 +1,43 @@
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=0  -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -I. tests/test_kernels.c .build/otim/SistNaoLinear.o .build/otim/EliminacaoGauss.o -lm -o .build/otim/test_kernels
+gcc -D_GNU_SOURCE -DBROYDEN_LAST_CONSTANT=0  -std=c11 -Wall -Wextra -O3 -march=native -mavx -fopt-info-vec -ffp-contract=fast -I. tests/test_kernels.c .build/base/SistNaoLinear.o .build/base/EliminacaoGauss.o -lm -o .build/base/test_kernels
+tests/test_kernels.c:70:20: optimized: loop vectorized using 32 byte vectors
+tests/test_kernels.c:70:20: optimized: loop vectorized using 32 byte vectors
+tests/test_kernels.c:52:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:54:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:57:22: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:64:18: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:64:18: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:52:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:54:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:57:22: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:64:18: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:64:18: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:95:18: tests/test_kernels.c:95:18: optimized: optimized: basic block part vectorized using 32 byte vectors
+basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:96:18: tests/test_kernels.c:96:18: optimized: optimized: basic block part vectorized using 32 byte vectors
+basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:97:18: tests/test_kernels.c:97:18: optimized: optimized: basic block part vectorized using 32 byte vectors
+basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:15:25: tests/test_kernels.c:15:25: optimized: optimized: basic block part vectorized using 32 byte vectors
+basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:79:12: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:79:12: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:79:64: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:79:64: optimized: basic block part vectorized using 16 byte vectors
+tests/test_kernels.c:80:18: optimized: basic block part vectorized using 32 byte vectors
+tests/test_kernels.c:80:18: optimized: basic block part vectorized using 32 byte vectors
+./.build/otim/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+./.build/base/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+python3 tests/test_solver.py 0 ./broyden ./broyden_baseline --densa ./broyden_densa
+broyden: 22 casos válidos, max |F| no ensaio = 1.11e-15
+broyden_baseline: 22 casos válidos, max |F| no ensaio = 1.11e-15
+broyden_densa: 15 casos válidos, max |F| no ensaio = 1.11e-15
+As versões concordam nos vetores finais dos casos em comum.
+python3 tests/test_likwid_parser.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK

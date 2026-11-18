@@ -1,0 +1,69 @@
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region NEWTON,Group 1 Raw,L2CACHE,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.401862,
+call count,1,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,2207557000
+CPU_CLK_UNHALTED_CORE,FIXC1,1378283000
+CPU_CLK_UNHALTED_REF,FIXC2,1280825000
+L2_TRANS_ALL_REQUESTS,PMC0,775825900
+L2_RQSTS_MISS,PMC1,175882100
+TABLE,Region NEWTON,Group 1 Metric,L2CACHE,7
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.4019,
+Runtime unhalted [s],0.4054,
+Clock [MHz],3658.7061,
+CPI,0.6243,
+L2 request rate,0.3514,
+L2 miss rate,0.0797,
+L2 miss ratio,0.2267,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region JACOBIANA,Group 1 Raw,L2CACHE,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.007089,
+call count,25,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,85324060
+CPU_CLK_UNHALTED_CORE,FIXC1,23529670
+CPU_CLK_UNHALTED_REF,FIXC2,21911030
+L2_TRANS_ALL_REQUESTS,PMC0,4150813
+L2_RQSTS_MISS,PMC1,966695
+TABLE,Region JACOBIANA,Group 1 Metric,L2CACHE,7
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.0071,
+Runtime unhalted [s],0.0069,
+Clock [MHz],3651.1692,
+CPI,0.2758,
+L2 request rate,0.0486,
+L2 miss rate,0.0113,
+L2 miss ratio,0.2329,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region SISTEMA_LINEAR,Group 1 Raw,L2CACHE,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.388977,
+call count,25,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,2121802000
+CPU_CLK_UNHALTED_CORE,FIXC1,1353872000
+CPU_CLK_UNHALTED_REF,FIXC2,1258095000
+L2_TRANS_ALL_REQUESTS,PMC0,771568100
+L2_RQSTS_MISS,PMC1,174883400
+TABLE,Region SISTEMA_LINEAR,Group 1 Metric,L2CACHE,7
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.3890,
+Runtime unhalted [s],0.3982,
+Clock [MHz],3658.8372,
+CPI,0.6381,
+L2 request rate,0.3636,
+L2 miss rate,0.0824,
+L2 miss ratio,0.2267,

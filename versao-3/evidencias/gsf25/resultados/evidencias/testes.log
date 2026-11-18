@@ -1,0 +1,80 @@
+make -C otimizada
+make -C baseline
+make[1]: Entering directory '/home/bcc/gsf25/icc-trabalho/icc/otimizada'
+make[1]: Entering directory '/home/bcc/gsf25/icc-trabalho/icc/baseline'
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c resolucaoSNL.c -o build/likwid-0/resolucaoSNL.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c NewtonSNL.c -o build/likwid-0/NewtonSNL.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c NewtonSNL.c -o build/likwid-0/NewtonSNL.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c resolucaoSNL.c -o build/likwid-0/resolucaoSNL.o
+NewtonSNL.c:47:30: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:47:30: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:47:30: NewtonSNL.c:47:30: optimized: optimized: loop vectorized using 16 byte vectors
+loop vectorized using 16 byte vectors
+NewtonSNL.c:40:30: NewtonSNL.c:40:30: optimized: optimized: loop vectorized using 32 byte vectors
+loop vectorized using 32 byte vectors
+NewtonSNL.c:40:30: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:40:30: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:22:26: NewtonSNL.c:22:26: optimized: optimized: loop vectorized using 32 byte vectors
+loop vectorized using 32 byte vectors
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c SistNaoLinear.c -o build/likwid-0/SistNaoLinear.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c SistLinear.c -o build/likwid-0/SistLinear.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c SistLinear.c -o build/likwid-0/SistLinear.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c SistNaoLinear.c -o build/likwid-0/SistNaoLinear.o
+SistLinear.c:12:12: optimized: basic block part vectorized using 32 byte vectors
+SistLinear.c:17:26: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:6:30: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:6:30: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:6:30: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:6:30: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:16:26: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:16:26: optimized:  loop versioned for vectorization because of possible aliasing
+SistNaoLinear.c:16:26: optimized: loop vectorized using 16 byte vectors
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c EliminacaoGauss.c -o build/likwid-0/EliminacaoGauss.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c utils.c -o build/likwid-0/utils.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c utils.c -o build/likwid-0/utils.o
+gcc -D_POSIX_C_SOURCE=200809L -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c EliminacaoGauss.c -o build/likwid-0/EliminacaoGauss.o
+EliminacaoGauss.c:36:32: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:36:32: optimized: loop vectorized using 16 byte vectors
+EliminacaoGauss.c:27:36: optimized: loop vectorized using 32 byte vectors
+EliminacaoGauss.c:27:36: optimized:  loop versioned for vectorization because of possible aliasing
+EliminacaoGauss.c:27:36: optimized: loop vectorized using 16 byte vectors
+gcc  -o broyden build/likwid-0/resolucaoSNL.o build/likwid-0/NewtonSNL.o build/likwid-0/SistNaoLinear.o build/likwid-0/SistLinear.o build/likwid-0/EliminacaoGauss.o build/likwid-0/utils.o -lm
+gcc  -o broyden build/likwid-0/resolucaoSNL.o build/likwid-0/NewtonSNL.o build/likwid-0/SistNaoLinear.o build/likwid-0/SistLinear.o build/likwid-0/EliminacaoGauss.o build/likwid-0/utils.o -lm
+make[1]: Leaving directory '/home/bcc/gsf25/icc-trabalho/icc/baseline'
+make[1]: Leaving directory '/home/bcc/gsf25/icc-trabalho/icc/otimizada'
+cp otimizada/broyden broyden
+python3 -B tests/test_broyden.py ./broyden
+OK N=32: 25 atualizações, resíduo < 1e-11
+OK N=64: 25 atualizações, resíduo < 1e-11
+OK N=128: 25 atualizações, resíduo < 1e-11
+OK N=256: 25 atualizações, resíduo < 1e-11
+OK N=512: 25 atualizações, resíduo < 1e-11
+OK N=1000: 25 atualizações, resíduo < 1e-11
+OK N=2000: 25 atualizações, resíduo < 1e-11
+OK N=4000: 25 atualizações, resíduo < 1e-11
+OK N=8000: 25 atualizações, resíduo < 1e-11
+OK N=9000: 25 atualizações, resíduo < 1e-11
+OK N=10000: 25 atualizações, resíduo < 1e-11
+OK N=20000: 25 atualizações, resíduo < 1e-11
+OK: referência densa, pivoteamento, tolerância, MAX=0, entradas inválidas e singularidade
+python3 -B tests/test_broyden.py ./baseline/broyden --rapido
+OK N=32: 25 atualizações, resíduo < 1e-11
+OK N=64: 25 atualizações, resíduo < 1e-11
+OK N=128: 25 atualizações, resíduo < 1e-11
+OK N=256: 25 atualizações, resíduo < 1e-11
+OK: referência densa, pivoteamento, tolerância, MAX=0, entradas inválidas e singularidade
+python3 -B tests/test_comparacao.py
+OK comparação N=2, x0=-1, epsilon=0, MAX=25
+OK comparação N=3, x0=-1, epsilon=0, MAX=25
+OK comparação N=8, x0=-1, epsilon=0, MAX=25
+OK comparação N=32, x0=-1, epsilon=0, MAX=25
+OK comparação N=64, x0=-1, epsilon=0, MAX=25
+OK comparação N=128, x0=-1, epsilon=0, MAX=25
+OK comparação N=256, x0=-1, epsilon=0, MAX=25
+OK comparação N=512, x0=-1, epsilon=0, MAX=25
+OK comparação N=2, x0=0.75, epsilon=0, MAX=1
+OK comparação N=4, x0=0.75, epsilon=0, MAX=1
+OK comparação N=8, x0=0.75, epsilon=0, MAX=1
+OK comparação N=32, x0=-1, epsilon=1e-10, MAX=25
+OK comparação N=32, x0=-1, epsilon=0, MAX=0
+OK comparação N=8, x0=0.6, epsilon=0, MAX=4

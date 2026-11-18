@@ -1,0 +1,9 @@
+ASAN_OPTIONS="detect_leaks=0" UBSAN_OPTIONS="halt_on_error=1" ./.build/san/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+ASAN_OPTIONS="detect_leaks=0" UBSAN_OPTIONS="halt_on_error=1" ./.build/base_san/test_kernels
+Jacobiana e sistemas lineares conferidos com sucesso.
+ASAN_OPTIONS="detect_leaks=0" UBSAN_OPTIONS="halt_on_error=1" python3 tests/test_solver.py 0 ./broyden_san ./broyden_baseline_san --densa ./broyden_densa_san --sanitizers
+broyden_san: 22 casos válidos, max |F| no ensaio = 1.33e-15
+broyden_baseline_san: 22 casos válidos, max |F| no ensaio = 1.11e-15
+broyden_densa_san: 13 casos válidos, max |F| no ensaio = 1.11e-15
+As versões concordam nos vetores finais dos casos em comum.

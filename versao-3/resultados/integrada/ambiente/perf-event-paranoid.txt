@@ -1,0 +1,4 @@
+$ cat /proc/sys/kernel/perf_event_paranoid
+3
+
+[status 0]

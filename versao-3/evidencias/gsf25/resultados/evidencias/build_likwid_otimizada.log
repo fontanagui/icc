@@ -1,0 +1,20 @@
+make: Entering directory '/tmp/icc-broyden-likwid-build/otimizada'
+gcc -D_POSIX_C_SOURCE=200809L -DLIKWID_PERFMON -I/home/soft/likwid/include -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c resolucaoSNL.c -o build/likwid-1/resolucaoSNL.o
+gcc -D_POSIX_C_SOURCE=200809L -DLIKWID_PERFMON -I/home/soft/likwid/include -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c NewtonSNL.c -o build/likwid-1/NewtonSNL.o
+gcc -D_POSIX_C_SOURCE=200809L -DLIKWID_PERFMON -I/home/soft/likwid/include -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c SistNaoLinear.c -o build/likwid-1/SistNaoLinear.o
+gcc -D_POSIX_C_SOURCE=200809L -DLIKWID_PERFMON -I/home/soft/likwid/include -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c SistLinear.c -o build/likwid-1/SistLinear.o
+SistLinear.c:12:12: optimized: basic block part vectorized using 32 byte vectors
+SistNaoLinear.c:6:30: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:6:30: optimized: loop vectorized using 16 byte vectors
+SistNaoLinear.c:16:26: optimized: loop vectorized using 32 byte vectors
+SistNaoLinear.c:16:26: optimized:  loop versioned for vectorization because of possible aliasing
+SistNaoLinear.c:16:26: optimized: loop vectorized using 16 byte vectors
+gcc -D_POSIX_C_SOURCE=200809L -DLIKWID_PERFMON -I/home/soft/likwid/include -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c EliminacaoGauss.c -o build/likwid-1/EliminacaoGauss.o
+NewtonSNL.c:47:30: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:47:30: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:40:30: optimized: loop vectorized using 32 byte vectors
+NewtonSNL.c:40:30: optimized: loop vectorized using 16 byte vectors
+NewtonSNL.c:22:26: optimized: loop vectorized using 32 byte vectors
+gcc -D_POSIX_C_SOURCE=200809L -DLIKWID_PERFMON -I/home/soft/likwid/include -O3 -march=native -mavx -fopt-info-vec -std=c11 -Wall -Wextra -Wpedantic -MMD -MP -c utils.c -o build/likwid-1/utils.o
+gcc -L/home/soft/likwid/lib -o broyden build/likwid-1/resolucaoSNL.o build/likwid-1/NewtonSNL.o build/likwid-1/SistNaoLinear.o build/likwid-1/SistLinear.o build/likwid-1/EliminacaoGauss.o build/likwid-1/utils.o -lm -llikwid
+make: Leaving directory '/tmp/icc-broyden-likwid-build/otimizada'

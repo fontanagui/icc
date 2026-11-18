@@ -1,0 +1,345 @@
+diff --git a/EliminacaoGauss.c b/EliminacaoGauss.c
+index 7f2abd3..2c9f4de 100644
+--- a/EliminacaoGauss.c
++++ b/EliminacaoGauss.c
+@@ -2,48 +2,36 @@
+ #include <math.h>
+ #include "EliminacaoGauss.h"
+ 
+-/* Preenche as duas diagonais laterais da Jacobiana. */
+-void preencheDiagonais( SistLinear_t *SL ) {
+-    size_t i;
+-
+-    for ( i = 0; i + 1 < SL->n; i++ ) {
+-        SL->inferior[i] = -1.0;
+-        SL->superior[i] = -2.0;
+-    }
+-}
+-
+ /* Faz a triangularização com pivoteamento entre linhas vizinhas. */
+ static int triang( SistLinear_t *SL ) {
+     size_t i;
+     double *a = SL->principal;
+     double *b = SL->b;
+-    double *inferior = SL->inferior;
+     double *superior = SL->superior;
++    double *segunda = SL->segunda;
++
++    for ( i = 0; i + 1 < SL->n; i++ )
++        superior[i] = -2.0;
+ 
+     for ( i = 0; i + 1 < SL->n; i++ ) {
+         double pivo = a[i];
+-        double abaixo = inferior[i];
+ 
+         if ( !isfinite( pivo ) )
+             return 0;
+ 
+-        if ( fabs( pivo ) >= fabs( abaixo ) ) {
+-            double m;
++        if ( fabs( pivo ) >= 1.0 ) {
++            double m = -1.0 / pivo;
+ 
+-            if ( pivo == 0.0 )
+-                return 0;
+-
+-            m = abaixo / pivo;
+             a[i + 1] -= m * superior[i];
+             b[i + 1] -= m * b[i];
+-            inferior[i] = 0.0;
++            segunda[i] = 0.0;
+         } else {
+             /* Troca as linhas sem construir uma matriz N x N. */
+-            double m = pivo / abaixo;
++            double m = -pivo;
+             double proxima = a[i + 1];
+             double valor = b[i];
+ 
+-            a[i] = abaixo;
++            a[i] = -1.0;
+             a[i + 1] = superior[i] - m * proxima;
+             superior[i] = proxima;
+             b[i] = b[i + 1];
+@@ -51,7 +39,7 @@ static int triang( SistLinear_t *SL ) {
+ 
+             /* A troca pode criar uma segunda diagonal superior. */
+             if ( i + 2 < SL->n ) {
+-                inferior[i] = superior[i + 1];
++                segunda[i] = superior[i + 1];
+                 superior[i + 1] = -m * superior[i + 1];
+             }
+         }
+@@ -65,27 +53,22 @@ static int retrossubs( SistLinear_t *SL ) {
+     size_t i, n = SL->n;
+     double *a = SL->principal;
+     double *b = SL->b;
+-    double *inferior = SL->inferior;
+     double *superior = SL->superior;
++    double *segunda = SL->segunda;
+ 
+-    if ( !isfinite( a[n - 1] ) || fabs( a[n - 1] ) < DBL_MIN )
++    /* Os pivôs anteriores são finitos e têm módulo maior ou igual a 1. */
++    if ( !isfinite( a[n - 1] ) || a[n - 1] == 0.0 )
+         return 0;
+ 
+     b[n - 1] /= a[n - 1];
+ 
+     if ( n > 1 ) {
+-        if ( !isfinite( a[n - 2] ) || a[n - 2] == 0.0 )
+-            return 0;
+-
+         b[n - 2] = ( b[n - 2] - superior[n - 2] * b[n - 1] ) / a[n - 2];
+ 
+         for ( i = n - 2; i > 0; ) {
+             i--;
+ 
+-            if ( !isfinite( a[i] ) || a[i] == 0.0 )
+-                return 0;
+-
+-            b[i] = ( b[i] - superior[i] * b[i + 1] - inferior[i] * b[i + 2] ) / a[i];
++            b[i] = ( b[i] - superior[i] * b[i + 1] - segunda[i] * b[i + 2] ) / a[i];
+         }
+     }
+ 
+@@ -106,35 +89,49 @@ static int pivosSeguros( SistLinear_t *SL ) {
+     return seguro != 0;
+ }
+ 
+-/*
+- * Versão rápida da eliminação de Gauss para uma matriz tridiagonal.
+- * Como os valores laterais são sempre -1 e -2, não precisamos
+- * consultá-los nem guardar a matriz completa durante esse cálculo.
+- */
++/* Elimina das duas pontas para intercalar duas cadeias de divisões. */
+ static void gaussRapido( SistLinear_t *SL ) {
+-    size_t i, n = SL->n;
++    size_t i, j, n = SL->n, meio = ( n - 1 ) / 2;
+     double *a = SL->principal;
+     double *b = SL->b;
+-    double inverso = 1.0 / a[0];
+-    double valor = b[0] * inverso;
+-
+-    a[0] = 2.0 * inverso;
+-    b[0] = valor;
+-
+-    /* Triangularização. */
+-    for ( i = 1; i < n; i++ ) {
+-        inverso = 1.0 / ( a[i] - 2.0 * inverso );
+-        valor = ( b[i] + valor ) * inverso;
+-        a[i] = 2.0 * inverso;
+-        b[i] = valor;
++    double invEsq = 0.0, invDir = 0.0;
++    double esq = 0.0, dir = 0.0;
++
++    for ( i = 0, j = n - 1; i < meio; i++, j-- ) {
++        invEsq = 1.0 / ( a[i] - 2.0 * invEsq );
++        invDir = 1.0 / ( a[j] - 2.0 * invDir );
++        esq = ( b[i] + esq ) * invEsq;
++        dir = ( b[j] + 2.0 * dir ) * invDir;
++        a[i] = 2.0 * invEsq;
++        a[j] = invDir;
++        b[i] = esq;
++        b[j] = dir;
++    }
++
++    /* N par deixa uma linha a mais no lado direito. */
++    if ( j > meio ) {
++        invDir = 1.0 / ( a[j] - 2.0 * invDir );
++        dir = ( b[j] + 2.0 * dir ) * invDir;
++        a[j] = invDir;
++        b[j] = dir;
+     }
+ 
+-    /* Retrossubstituição. */
+-    for ( i = n - 1; i > 0; ) {
++    /* Resolve a equação central e volta às pontas. */
++    b[meio] = ( b[meio] + esq + 2.0 * dir ) / ( a[meio] - 2.0 * invEsq - 2.0 * invDir );
++    esq = b[meio];
++    dir = esq;
++
++    for ( j = meio; i > 0; ) {
+         i--;
+-        valor = b[i] + a[i] * valor;
+-        b[i] = valor;
++        j++;
++        esq = b[i] + a[i] * esq;
++        dir = b[j] + a[j] * dir;
++        b[i] = esq;
++        b[j] = dir;
+     }
++
++    if ( j + 1 < n )
++        b[j + 1] += a[j + 1] * dir;
+ }
+ #endif
+ 
+@@ -148,9 +145,6 @@ int eliminacaoGauss( SistLinear_t *SL ) {
+     }
+ #endif
+ 
+-    /* Quando necessário, usa a eliminação com troca de linhas. */
+-    preencheDiagonais( SL );
+-
+     if ( !triang( SL ) )
+         return 0;
+ 
+diff --git a/EliminacaoGauss.h b/EliminacaoGauss.h
+index cc30d89..a32828d 100644
+--- a/EliminacaoGauss.h
++++ b/EliminacaoGauss.h
+@@ -6,7 +6,4 @@
+ /* Resolve o sistema, deixando a solução no próprio vetor b. */
+ int eliminacaoGauss( SistLinear_t *SL );
+ 
+-/* Preenche as diagonais constantes: -1 abaixo e -2 acima. */
+-void preencheDiagonais( SistLinear_t *SL );
+-
+ #endif
+diff --git a/NewtonSNL.c b/NewtonSNL.c
+index 9465929..19eed90 100644
+--- a/NewtonSNL.c
++++ b/NewtonSNL.c
+@@ -54,10 +54,9 @@ static double *alocaVetores( size_t n, size_t *tamanho ) {
+  */
+ static int calculaPasso( const double *X, double *FX, double epsilon,
+                         SistLinear_t *SL, Tempos_t *T ) {
+-    size_t i;
+     rtime_t inicio;
+ 
+-    calcF( FX, X, SL->n );
++    calcMenosF( FX, X, SL->n );
+ 
+     if ( epsilon > 0.0 ) {
+         double erro = norma( FX, SL->n );
+@@ -76,10 +75,6 @@ static int calculaPasso( const double *X, double *FX, double epsilon,
+     LIKWID_MARKER_STOP( MARCA_JACOBIANA );
+     T->jacobiana += timestamp() - inicio;
+ 
+-    /* Para obter o passo S, resolvemos J*S = -F(X). */
+-    for ( i = 0; i < SL->n; i++ )
+-        FX[i] = -FX[i];
+-
+     inicio = timestamp();
+     LIKWID_MARKER_START( MARCA_GAUSS );
+     int resolveu = eliminacaoGauss( SL );
+@@ -116,8 +111,8 @@ int newton( size_t n, double x0, double epsilon, size_t MAXIT ) {
+     FX = memoria + tamanho;
+     SL.n = n;
+     SL.principal = memoria + 2 * tamanho;
+-    SL.inferior = memoria + 3 * tamanho;
+-    SL.superior = memoria + 4 * tamanho;
++    SL.superior = memoria + 3 * tamanho;
++    SL.segunda = memoria + 4 * tamanho;
+     SL.b = FX;
+ 
+     for ( i = 0; i < n; i++ )
+diff --git a/SistLinear.h b/SistLinear.h
+index ddd5859..6478870 100644
+--- a/SistLinear.h
++++ b/SistLinear.h
+@@ -3,12 +3,12 @@
+ 
+ #include <stddef.h>
+ 
+-/* Sistema linear J*S = b. Guardamos só três diagonais da Jacobiana. */
++/* O pivotamento usa duas superdiagonais. A subdiagonal vale -1. */
+ typedef struct {
+     size_t n;
+     double *principal;
+-    double *inferior;
+     double *superior;
++    double *segunda;
+     double *b;
+ } SistLinear_t;
+ 
+diff --git a/SistNaoLinear.c b/SistNaoLinear.c
+index 602818c..73d3740 100644
+--- a/SistNaoLinear.c
++++ b/SistNaoLinear.c
+@@ -5,8 +5,8 @@
+ #define BROYDEN_LAST_CONSTANT 1
+ #endif
+ 
+-/* Calcula F(X), considerando que os vizinhos fora do vetor são zero. */
+-void calcF( double *restrict FX, const double *restrict X, size_t n ) {
++/* Calcula -F(X) para o sistema linear de Newton. */
++void calcMenosF( double *restrict b, const double *restrict X, size_t n ) {
+     size_t i;
+ 
+ #ifdef BROYDEN_BASELINE
+@@ -16,22 +16,22 @@ void calcF( double *restrict FX, const double *restrict X, size_t n ) {
+         double direita = i == n - 1 ? 0.0 : X[i + 1];
+         double constante = i == n - 1 ? BROYDEN_LAST_CONSTANT : 1.0;
+ 
+-        FX[i] = ( 3.0 - 2.0 * X[i] ) * X[i] - esquerda - 2.0 * direita + constante;
++        b[i] = -( ( 3.0 - 2.0 * X[i] ) * X[i] - esquerda - 2.0 * direita + constante );
+     }
+ #else
+     /* Versão otimizada: separa as bordas para não fazer if no laço. */
+     if ( n == 1 ) {
+-        FX[0] = ( 3.0 - 2.0 * X[0] ) * X[0] + BROYDEN_LAST_CONSTANT;
++        b[0] = -( ( 3.0 - 2.0 * X[0] ) * X[0] + BROYDEN_LAST_CONSTANT );
+ 
+         return;
+     }
+ 
+-    FX[0] = ( 3.0 - 2.0 * X[0] ) * X[0] - 2.0 * X[1] + 1.0;
++    b[0] = -( ( 3.0 - 2.0 * X[0] ) * X[0] - 2.0 * X[1] + 1.0 );
+ 
+     for ( i = 1; i < n - 1; i++ )
+-        FX[i] = ( 3.0 - 2.0 * X[i] ) * X[i] - X[i - 1] - 2.0 * X[i + 1] + 1.0;
++        b[i] = -( ( 3.0 - 2.0 * X[i] ) * X[i] - X[i - 1] - 2.0 * X[i + 1] + 1.0 );
+ 
+-    FX[n - 1] = ( 3.0 - 2.0 * X[n - 1] ) * X[n - 1] - X[n - 2] + BROYDEN_LAST_CONSTANT;
++    b[n - 1] = -( ( 3.0 - 2.0 * X[n - 1] ) * X[n - 1] - X[n - 2] + BROYDEN_LAST_CONSTANT );
+ #endif
+ }
+ 
+diff --git a/SistNaoLinear.h b/SistNaoLinear.h
+index 5ef3370..d8f8cc3 100644
+--- a/SistNaoLinear.h
++++ b/SistNaoLinear.h
+@@ -5,8 +5,8 @@
+ 
+ #define ALINHAMENTO 64
+ 
+-/* Calcula as funções de Broyden no vetor FX. */
+-void calcF( double *restrict FX, const double *restrict X, size_t n );
++/* Calcula o lado direito -F(X) do passo de Newton. */
++void calcMenosF( double *restrict b, const double *restrict X, size_t n );
+ 
+ /* Calcula apenas a diagonal principal da matriz Jacobiana. */
+ void calcJ( double *restrict diagonal, const double *restrict X, size_t n );
+diff --git a/tests/test_kernels.c b/tests/test_kernels.c
+index c7c45d2..3e341ae 100644
+--- a/tests/test_kernels.c
++++ b/tests/test_kernels.c
+@@ -21,14 +21,14 @@ static int testaJacobiana( void ) {
+         double antigo = X[j];
+ 
+         X[j] = antigo + h;
+-        calcF( mais, X, N );
++        calcMenosF( mais, X, N );
+         X[j] = antigo - h;
+-        calcF( menos, X, N );
++        calcMenosF( menos, X, N );
+         X[j] = antigo;
+ 
+         for ( i = 0; i < N; i++ ) {
+             double esperado = 0.0;
+-            double derivada = ( mais[i] - menos[i] ) / ( 2.0 * h );
++            double derivada = ( menos[i] - mais[i] ) / ( 2.0 * h );
+ 
+             if ( i == j )
+                 esperado = diagonal[i];
+@@ -49,8 +49,8 @@ static int testaJacobiana( void ) {
+ static int testaGauss( const double a[N] ) {
+     size_t i;
+     const double esperado[N] = {2.0, -1.0, 0.5, -3.0, 4.0};
+-    double principal[N], inferior[N], superior[N], b[N];
+-    SistLinear_t SL = { N, principal, inferior, superior, b };
++    double principal[N], superior[N], segunda[N], b[N];
++    SistLinear_t SL = { N, principal, superior, segunda, b };
+ 
+     for ( i = 0; i < N; i++ ) {
+         principal[i] = a[i];

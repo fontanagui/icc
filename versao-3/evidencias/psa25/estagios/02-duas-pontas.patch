@@ -1,0 +1,76 @@
+diff --git a/EliminacaoGauss.c b/EliminacaoGauss.c
+index 7f2abd3..30d012b 100644
+--- a/EliminacaoGauss.c
++++ b/EliminacaoGauss.c
+@@ -106,35 +106,49 @@ static int pivosSeguros( SistLinear_t *SL ) {
+     return seguro != 0;
+ }
+ 
+-/*
+- * Versão rápida da eliminação de Gauss para uma matriz tridiagonal.
+- * Como os valores laterais são sempre -1 e -2, não precisamos
+- * consultá-los nem guardar a matriz completa durante esse cálculo.
+- */
++/* Elimina das duas pontas para intercalar duas cadeias de divisões. */
+ static void gaussRapido( SistLinear_t *SL ) {
+-    size_t i, n = SL->n;
++    size_t i, j, n = SL->n, meio = ( n - 1 ) / 2;
+     double *a = SL->principal;
+     double *b = SL->b;
+-    double inverso = 1.0 / a[0];
+-    double valor = b[0] * inverso;
+-
+-    a[0] = 2.0 * inverso;
+-    b[0] = valor;
+-
+-    /* Triangularização. */
+-    for ( i = 1; i < n; i++ ) {
+-        inverso = 1.0 / ( a[i] - 2.0 * inverso );
+-        valor = ( b[i] + valor ) * inverso;
+-        a[i] = 2.0 * inverso;
+-        b[i] = valor;
++    double invEsq = 0.0, invDir = 0.0;
++    double esq = 0.0, dir = 0.0;
++
++    for ( i = 0, j = n - 1; i < meio; i++, j-- ) {
++        invEsq = 1.0 / ( a[i] - 2.0 * invEsq );
++        invDir = 1.0 / ( a[j] - 2.0 * invDir );
++        esq = ( b[i] + esq ) * invEsq;
++        dir = ( b[j] + 2.0 * dir ) * invDir;
++        a[i] = 2.0 * invEsq;
++        a[j] = invDir;
++        b[i] = esq;
++        b[j] = dir;
++    }
++
++    /* N par deixa uma linha a mais no lado direito. */
++    if ( j > meio ) {
++        invDir = 1.0 / ( a[j] - 2.0 * invDir );
++        dir = ( b[j] + 2.0 * dir ) * invDir;
++        a[j] = invDir;
++        b[j] = dir;
+     }
+ 
+-    /* Retrossubstituição. */
+-    for ( i = n - 1; i > 0; ) {
++    /* Resolve a equação central e volta às pontas. */
++    b[meio] = ( b[meio] + esq + 2.0 * dir ) / ( a[meio] - 2.0 * invEsq - 2.0 * invDir );
++    esq = b[meio];
++    dir = esq;
++
++    for ( j = meio; i > 0; ) {
+         i--;
+-        valor = b[i] + a[i] * valor;
+-        b[i] = valor;
++        j++;
++        esq = b[i] + a[i] * esq;
++        dir = b[j] + a[j] * dir;
++        b[i] = esq;
++        b[j] = dir;
+     }
++
++    if ( j + 1 < n )
++        b[j + 1] += a[j + 1] * dir;
+ }
+ #endif
+ 

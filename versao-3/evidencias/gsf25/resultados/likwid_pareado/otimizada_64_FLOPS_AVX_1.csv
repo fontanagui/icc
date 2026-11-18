@@ -1,0 +1,66 @@
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region NEWTON,Group 1 Raw,FLOPS_AVX,5
+Region Info,HWThread 3,
+RDTSC Runtime [s],0.003588,
+call count,1,
+Event,Counter,HWThread 3
+INSTR_RETIRED_ANY,FIXC0,376548
+CPU_CLK_UNHALTED_CORE,FIXC1,826983
+CPU_CLK_UNHALTED_REF,FIXC2,784408
+FP_ARITH_INST_RETIRED_256B_PACKED_SINGLE,PMC0,0
+FP_ARITH_INST_RETIRED_256B_PACKED_DOUBLE,PMC1,3825
+TABLE,Region NEWTON,Group 1 Metric,FLOPS_AVX,6
+Metric,HWThread 3,
+Runtime (RDTSC) [s],0.0036,
+Runtime unhalted [s],0.0002,
+Clock [MHz],3584.5404,
+CPI,2.1962,
+Packed SP [MFLOP/s],0,
+Packed DP [MFLOP/s],4.2643,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region JACOBIANA,Group 1 Raw,FLOPS_AVX,5
+Region Info,HWThread 3,
+RDTSC Runtime [s],0.000007,
+call count,25,
+Event,Counter,HWThread 3
+INSTR_RETIRED_ANY,FIXC0,67335
+CPU_CLK_UNHALTED_CORE,FIXC1,202139
+CPU_CLK_UNHALTED_REF,FIXC2,191274
+FP_ARITH_INST_RETIRED_256B_PACKED_SINGLE,PMC0,0
+FP_ARITH_INST_RETIRED_256B_PACKED_DOUBLE,PMC1,800
+TABLE,Region JACOBIANA,Group 1 Metric,FLOPS_AVX,6
+Metric,HWThread 3,
+Runtime (RDTSC) [s],6.945294e-06,
+Runtime unhalted [s],0.0001,
+Clock [MHz],3593.1313,
+CPI,3.0020,
+Packed SP [MFLOP/s],0,
+Packed DP [MFLOP/s],460.7436,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region SISTEMA_LINEAR,Group 1 Raw,FLOPS_AVX,5
+Region Info,HWThread 3,
+RDTSC Runtime [s],0.000029,
+call count,25,
+Event,Counter,HWThread 3
+INSTR_RETIRED_ANY,FIXC0,134606
+CPU_CLK_UNHALTED_CORE,FIXC1,278687
+CPU_CLK_UNHALTED_REF,FIXC2,263268
+FP_ARITH_INST_RETIRED_256B_PACKED_SINGLE,PMC0,0
+FP_ARITH_INST_RETIRED_256B_PACKED_DOUBLE,PMC1,0
+TABLE,Region SISTEMA_LINEAR,Group 1 Metric,FLOPS_AVX,6
+Metric,HWThread 3,
+Runtime (RDTSC) [s],2.936765e-05,
+Runtime unhalted [s],0.0001,
+Clock [MHz],3599.1302,
+CPI,2.0704,
+Packed SP [MFLOP/s],0,
+Packed DP [MFLOP/s],0,

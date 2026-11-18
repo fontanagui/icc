@@ -1,0 +1,78 @@
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region NEWTON,Group 1 Raw,MEM,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.009299,
+call count,1,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,488652
+CPU_CLK_UNHALTED_CORE,FIXC1,1205450
+CPU_CLK_UNHALTED_REF,FIXC2,1114984
+DRAM_READS,MBOX0C1,2226124
+DRAM_WRITES,MBOX0C2,1398999
+TABLE,Region NEWTON,Group 1 Metric,MEM,10
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.0093,
+Runtime unhalted [s],0.0004,
+Clock [MHz],3675.8644,
+CPI,2.4669,
+Memory load bandwidth [MBytes/s],15321.8432,
+Memory load data volume [GBytes],0.1425,
+Memory evict bandwidth [MBytes/s],9628.9530,
+Memory evict data volume [GBytes],0.0895,
+Memory bandwidth [MBytes/s],24950.7961,
+Memory data volume [GBytes],0.2320,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region JACOBIANA,Group 1 Raw,MEM,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.000016,
+call count,25,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,70900
+CPU_CLK_UNHALTED_CORE,FIXC1,277195
+CPU_CLK_UNHALTED_REF,FIXC2,257162
+DRAM_READS,MBOX0C1,555229
+DRAM_WRITES,MBOX0C2,359323
+TABLE,Region JACOBIANA,Group 1 Metric,MEM,10
+Metric,HWThread 2,
+Runtime (RDTSC) [s],1.615824e-05,
+Runtime unhalted [s],0.0001,
+Clock [MHz],3664.8611,
+CPI,3.9097,
+Memory load bandwidth [MBytes/s],2.199166e+06,
+Memory load data volume [GBytes],0.0355,
+Memory evict bandwidth [MBytes/s],1.423216e+06,
+Memory evict data volume [GBytes],0.0230,
+Memory bandwidth [MBytes/s],3.622383e+06,
+Memory data volume [GBytes],0.0585,
+STRUCT,Info,3
+CPU name:,Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz,
+CPU type:,Intel Coffeelake processor,
+CPU clock:,3.4 GHz,
+TABLE,Region SISTEMA_LINEAR,Group 1 Raw,MEM,5
+Region Info,HWThread 2,
+RDTSC Runtime [s],0.000061,
+call count,25,
+Event,Counter,HWThread 2
+INSTR_RETIRED_ANY,FIXC0,207022
+CPU_CLK_UNHALTED_CORE,FIXC1,426811
+CPU_CLK_UNHALTED_REF,FIXC2,394760
+DRAM_READS,MBOX0C1,555122
+DRAM_WRITES,MBOX0C2,343592
+TABLE,Region SISTEMA_LINEAR,Group 1 Metric,MEM,10
+Metric,HWThread 2,
+Runtime (RDTSC) [s],0.0001,
+Runtime unhalted [s],0.0001,
+Clock [MHz],3676.0498,
+CPI,2.0617,
+Memory load bandwidth [MBytes/s],584712.2785,
+Memory load data volume [GBytes],0.0355,
+Memory evict bandwidth [MBytes/s],361906.8622,
+Memory evict data volume [GBytes],0.0220,
+Memory bandwidth [MBytes/s],946619.1407,
+Memory data volume [GBytes],0.0575,

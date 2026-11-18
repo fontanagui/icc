@@ -1,0 +1,16 @@
+versao,N,x0,epsilon,MAX,cpu,repeticao,grupo,regiao,metrica,valor,arquivo_likwid
+baseline,2000,-1,0,25,3,1,MEM,NEWTON,banda_memoria,5793.8391,likwid_baseline_2000/baseline_2000_MEM_1.csv
+baseline,2000,-1,0,25,3,1,MEM,JACOBIANA,banda_memoria,22062.9975,likwid_baseline_2000/baseline_2000_MEM_1.csv
+baseline,2000,-1,0,25,3,1,MEM,SISTEMA_LINEAR,banda_memoria,23566.5228,likwid_baseline_2000/baseline_2000_MEM_1.csv
+baseline,2000,-1,0,25,3,1,L2CACHE,NEWTON,miss_l2,0.2076,likwid_baseline_2000/baseline_2000_L2CACHE_1.csv
+baseline,2000,-1,0,25,3,1,L2CACHE,JACOBIANA,miss_l2,0.2641,likwid_baseline_2000/baseline_2000_L2CACHE_1.csv
+baseline,2000,-1,0,25,3,1,L2CACHE,SISTEMA_LINEAR,miss_l2,0.2075,likwid_baseline_2000/baseline_2000_L2CACHE_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_DP,NEWTON,flops_dp,2678.7918,likwid_baseline_2000/baseline_2000_FLOPS_DP_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_DP,NEWTON,flops_dp_avx,2670.7623,likwid_baseline_2000/baseline_2000_FLOPS_DP_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_DP,JACOBIANA,flops_dp,1.1984,likwid_baseline_2000/baseline_2000_FLOPS_DP_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_DP,JACOBIANA,flops_dp_avx,0.0,likwid_baseline_2000/baseline_2000_FLOPS_DP_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_DP,SISTEMA_LINEAR,flops_dp,2683.6643,likwid_baseline_2000/baseline_2000_FLOPS_DP_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_DP,SISTEMA_LINEAR,flops_dp_avx,2675.6242,likwid_baseline_2000/baseline_2000_FLOPS_DP_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_AVX,NEWTON,flops_avx,2700.7559,likwid_baseline_2000/baseline_2000_FLOPS_AVX_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_AVX,JACOBIANA,flops_avx,0.0,likwid_baseline_2000/baseline_2000_FLOPS_AVX_1.csv
+baseline,2000,-1,0,25,3,1,FLOPS_AVX,SISTEMA_LINEAR,flops_avx,2706.2668,likwid_baseline_2000/baseline_2000_FLOPS_AVX_1.csv

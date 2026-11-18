@@ -1,0 +1,8 @@
+ERROR - [/home/soft/likwid/alt/dist/likwid-5.5.2/src/access_client.c:326] Operation not permitted
+Exiting due to timeout: The socket file at '/tmp/likwid-82' could not be
+opened within 10 seconds. Consult the error message above
+this to find out why. If the error is 'no such file or directoy',
+it usually means that likwid-accessD just failed to start.
+likwid-accessD prints only to syslog. Check there for details
+ERROR - [/home/soft/likwid/alt/dist/likwid-5.5.2/src/perfmon.c:perfmon_init:2381] Operation not permitted.
+Cannot get access to performance counters
