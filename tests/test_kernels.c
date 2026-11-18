@@ -1,92 +1,92 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "SistNaoLinear.h"
+#include "SistLinear.h"
+#include "EliminacaoGauss.h"
 
-#include "broyden.h"
-#include "jacobiana.h"
-#include "sistema_linear.h"
+#define N 5
 
-enum { N = 5 };
-
-/* Compara as derivadas do kernel com diferenças centrais em cada coluna. */
-static bool testa_jacobiana(void)
-{
-    _Alignas(64) double x[N] = {-0.7, 0.3, -1.1, 0.6, -0.2};
-    _Alignas(64) double principal[N], superior[N], inferior[N];
-    double mais[N], menos[N];
-    const Tridiagonal j = {principal, inferior, superior};
+/* Confere a Jacobiana comparando suas derivadas com diferenças centrais. */
+static int testaJacobiana( void ) {
+    size_t i, j;
     const double h = 1e-5;
+    _Alignas(64) double X[N] = {-0.7, 0.3, -1.1, 0.6, -0.2};
+    _Alignas(64) double diagonal[N];
+    double mais[N], menos[N];
 
-    constroi_jacobiana(N, x, j);
-    preenche_laterais(N, j);
-    for (size_t coluna = 0; coluna < N; ++coluna) {
-        const double original = x[coluna];
-        x[coluna] = original + h;
-        broyden_rhs(N, x, mais);
-        x[coluna] = original - h;
-        broyden_rhs(N, x, menos);
-        x[coluna] = original;
+    calcJ( diagonal, X, N );
 
-        for (size_t linha = 0; linha < N; ++linha) {
+    for ( j = 0; j < N; j++ ) {
+        double antigo = X[j];
+
+        X[j] = antigo + h;
+        calcF( mais, X, N );
+        X[j] = antigo - h;
+        calcF( menos, X, N );
+        X[j] = antigo;
+
+        for ( i = 0; i < N; i++ ) {
             double esperado = 0.0;
-            if (linha == coluna) {
-                esperado = principal[linha];
-            } else if (linha + 1 == coluna) {
-                esperado = superior[linha];
-            } else if (coluna + 1 == linha) {
-                esperado = inferior[coluna];
-            }
-            const double derivada = (menos[linha] - mais[linha]) / (2 * h);
-            if (fabs(derivada - esperado) > 1e-9) {
-                return false;
-            }
+            double derivada = ( mais[i] - menos[i] ) / ( 2.0 * h );
+
+            if ( i == j )
+                esperado = diagonal[i];
+            else if ( i + 1 == j )
+                esperado = -2.0;
+            else if ( j + 1 == i )
+                esperado = -1.0;
+
+            if ( fabs( derivada - esperado ) > 1e-9 )
+                return 0;
         }
     }
-    return true;
+
+    return 1;
 }
 
-/* Cria um sistema com solução conhecida e testa a eliminação e a retrocessão. */
-static bool testa_sistema(const double original[N])
-{
+/* Monta um sistema com solução conhecida para testar a eliminação de Gauss. */
+static int testaGauss( const double a[N] ) {
+    size_t i;
     const double esperado[N] = {2.0, -1.0, 0.5, -3.0, 4.0};
-    double principal[N], superior[N], inferior[N], rhs[N];
-    const Tridiagonal j = {principal, inferior, superior};
+    double principal[N], inferior[N], superior[N], b[N];
+    SistLinear_t SL = { N, principal, inferior, superior, b };
 
-    preenche_laterais(N, j);
-    for (size_t i = 0; i < N; ++i) {
-        principal[i] = original[i];
-        rhs[i] = original[i] * esperado[i];
-        if (i > 0) {
-            rhs[i] -= esperado[i - 1];
-        }
-        if (i + 1 < N) {
-            rhs[i] -= 2.0 * esperado[i + 1];
-        }
+    for ( i = 0; i < N; i++ ) {
+        principal[i] = a[i];
+        b[i] = a[i] * esperado[i];
+
+        if ( i > 0 )
+            b[i] -= esperado[i - 1];
+
+        if ( i + 1 < N )
+            b[i] -= 2.0 * esperado[i + 1];
     }
-    if (!resolve_sistema(N, j, rhs)) {
-        return false;
+
+    if ( !eliminacaoGauss( &SL ) )
+        return 0;
+
+    for ( i = 0; i < N; i++ ) {
+        if ( !isfinite( b[i] ) || fabs( b[i] - esperado[i] ) > 1e-12 )
+            return 0;
     }
-    for (size_t i = 0; i < N; ++i) {
-        if (!isfinite(rhs[i]) || fabs(rhs[i] - esperado[i]) > 1e-12) {
-            return false;
-        }
-    }
-    return true;
+
+    return 1;
 }
 
-/* Exercita pivôs negativos dominantes e trocas com preenchimento de banda. */
-int main(void)
-{
+int main( void ) {
     const double dominante[N] = {-6.0, 5.0, -9.0, 3.0, 4.0};
-    const double com_trocas[N] = {0.0, 2.0, 0.0, 2.0, 3.0};
-    const double quase_zero[N] = {1e-16, 2.0, 1e-16, -2.0, 3.0};
+    const double comTrocas[N] = {0.0, 2.0, 0.0, 2.0, 3.0};
+    const double quaseZero[N] = {1e-16, 2.0, 1e-16, -2.0, 3.0};
 
-    if (!testa_jacobiana() || !testa_sistema(dominante)
-        || !testa_sistema(com_trocas) || !testa_sistema(quase_zero)) {
-        fputs("Falha nos testes dos kernels.\n", stderr);
+    if ( !testaJacobiana() || !testaGauss( dominante ) ||
+         !testaGauss( comTrocas ) || !testaGauss( quaseZero ) ) {
+        fputs( "Falha nos testes de Jacobiana e Gauss.\n", stderr );
+
         return EXIT_FAILURE;
     }
 
-    puts("Kernels: diferenças centrais e sistemas com solução conhecida verificados.");
+    puts( "Jacobiana e sistemas lineares conferidos com sucesso." );
+
     return EXIT_SUCCESS;
 }

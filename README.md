@@ -1,6 +1,6 @@
 # Broyden tridiagonal · CI1164 — versão simplificada
 
-**Comece por [`GUIA_CODIGO.md`](GUIA_CODIGO.md).** Os arquivos C foram reescritos com funções e variáveis mais fáceis de acompanhar, inspirados na organização do projeto The Boys. As otimizações de alto desempenho foram preservadas.
+**Comece por [`GUIA_CODIGO.md`](GUIA_CODIGO.md).** Este programa continua resolvendo as equações de **Broyden por Newton**. A organização usa funções como `calcF`, `calcJ`, `triang`, `retrossubs`, `eliminacaoGauss` e `newton`, inspiradas nos exemplos do professor. A formatação segue o projeto The Boys. As otimizações de alto desempenho foram preservadas.
 
 O programa resolve o sistema não linear de Broyden com Newton em dupla precisão. A execução oficial usa `./broyden`. Cada atualização custa tempo e memória de trabalho proporcionais a `N`.
 
@@ -55,10 +55,10 @@ Ao mudar flags de compilação ou LAST_CONSTANT, execute `make clean` antes de r
 
 | Arquivo ou pasta | Conteúdo |
 |---|---|
-| `main.c`, `io.c` | Entrada, geração da saída e código de retorno |
-| `newton.c` | Espaço de trabalho, iterações, parada, temporizadores e marcadores |
-| `broyden.c`, `jacobiana.c` | Resíduo, atualização e derivadas analíticas |
-| `sistema_linear.c` | Thomas certificado e eliminação tridiagonal com pivotamento |
+| `resolucaoSNL.c`, `Entrada.c` | Programa principal, leitura dos dados e impressão |
+| `NewtonSNL.c` | Alocação dos vetores, método de Newton, tempos e LIKWID |
+| `SistNaoLinear.c` | Cálculo de `F(X)`, Jacobiana e atualização de `X` |
+| `EliminacaoGauss.c` | Eliminação de Gauss para a Jacobiana tridiagonal |
 | `utils.c`, `utils.h` | Módulos fornecidos pela disciplina, incluindo `timestamp()` |
 | `tests/` | Testes numéricos, da interface e dos formatos do LIKWID |
 | `benchmark/` | Coleta, análise, geração de gráficos e empacotamento |
@@ -68,7 +68,7 @@ Ao mudar flags de compilação ou LAST_CONSTANT, execute `make clean` antes de r
 
 ## Fechar o artigo e o ZIP
 
-O PDF incluído apresenta o ensaio preliminar de tempo em ambiente virtual. Os nove gráficos de hardware dependem da coleta em máquina compatível. Depois de rodar `benchmark/analise.py`, revise as figuras e a interpretação dos eventos no artigo. Preencha `\Autores` em `relatorio/artigo.tex` com os integrantes e os logins. Em seguida, recompile o PDF e passe seu login, ou os dois separados por hífen, para o empacotador. O empacotador usa a mesma base no ZIP, na pasta interna e no PDF interno.
+O PDF incluído e seus dados são da implementação anterior. A reescrita foi validada numericamente, mas os resultados históricos devem ser novamente medidos antes de apresentá-los como resultados desta versão. O PDF incluído apresenta um ensaio preliminar de tempo em ambiente virtual. Os nove gráficos de hardware dependem da coleta em máquina compatível. Depois de rodar `benchmark/analise.py`, revise as figuras e a interpretação dos eventos no artigo. Preencha `\Autores` em `relatorio/artigo.tex` com os integrantes e os logins. Em seguida, recompile o PDF e passe seu login, ou os dois separados por hífen, para o empacotador. O empacotador usa a mesma base no ZIP, na pasta interna e no PDF interno.
 
 ```bash
 make relatorio-pdf

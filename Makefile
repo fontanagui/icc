@@ -14,7 +14,7 @@ LIKWID_CPPFLAGS ?= $(shell pkg-config --cflags likwid 2>/dev/null)
 LIKWID_LDFLAGS ?=
 LIKWID_LDLIBS ?= -llikwid -pthread
 
-FONTES = main.c io.c newton.c broyden.c jacobiana.c sistema_linear.c utils.c
+FONTES = resolucaoSNL.c Entrada.c NewtonSNL.c SistNaoLinear.c EliminacaoGauss.c utils.c
 OBJ_OTIM = $(FONTES:%.c=.build/otim/%.o)
 OBJ_BASE = $(FONTES:%.c=.build/base/%.o)
 OBJ_LIKWID = $(FONTES:%.c=.build/likwid/%.o)
@@ -82,7 +82,7 @@ broyden_baseline_san: $(OBJ_BASE_SAN)
 -include $(OBJ_LIKWID:.o=.d) $(OBJ_BASE_LIKWID:.o=.d)
 -include $(OBJ_SAN:.o=.d) $(OBJ_BASE_SAN:.o=.d)
 
-.build/test_kernels: tests/test_kernels.c $(filter-out .build/otim/main.o,$(OBJ_OTIM))
+.build/test_kernels: tests/test_kernels.c $(filter-out .build/otim/resolucaoSNL.o,$(OBJ_OTIM))
 	$(CC) $(PARAMETROS) $(FLAGS) -I. $^ -lm -o $@
 
 test: broyden broyden_baseline .build/test_kernels

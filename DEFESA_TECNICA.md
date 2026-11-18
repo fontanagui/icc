@@ -10,11 +10,11 @@ A última constante deve ser conferida na imagem do Moodle. A expressão do scri
 
 Expanda o termo local para $3x_i-2x_i^2$. A derivada em relação a $x_i$ vale $3-4x_i$. Derivar as contribuições dos vizinhos dá $-1$ à esquerda e $-2$ à direita. Todas as outras derivadas valem zero. As extremidades usam vizinhos fictícios fixos em zero. Para $N=1$, vale apenas $(3-2x_1)x_1+c_1$.
 
-Em `newton.c`, uma alocação contém cinco fatias contíguas. Duas se alternam entre o iterado corrente e a área para resíduo, correção e novo iterado. Outra contém a diagonal principal e serve de área para os pivôs ou coeficientes de retrocessão. As duas restantes contêm as diagonais laterais quando usadas. Para $N=20000$, são 800.000 bytes reservados. O caminho de Thomas percorre três fatias, com 480.000 bytes de dados distintos. Uma matriz densa exigiria 3,2 GB só para a Jacobiana.
+Em `NewtonSNL.c`, uma alocação contém cinco fatias contíguas. Duas se alternam entre o iterado corrente e a área para resíduo, correção e novo iterado. Outra contém a diagonal principal e serve de área para os pivôs ou coeficientes de retrocessão. As duas restantes contêm as diagonais laterais quando usadas. Para $N=20000$, são 800.000 bytes reservados. O caminho de Thomas percorre três fatias, com 480.000 bytes de dados distintos. Uma matriz densa exigiria 3,2 GB só para a Jacobiana.
 
 ## 3. O sistema linear
 
-Na baseline, `gauss_tridiagonal` escolhe entre duas linhas adjacentes a cada passo. Se o elemento abaixo do pivô for maior em módulo, realiza a troca. A troca pode criar um coeficiente em $J_{i,i+2}$. O código reutiliza a posição liberada da subdiagonal para guardá-lo até a retrocessão. A escolha do maior módulo limita o tamanho do multiplicador de eliminação. Um pivô final inválido gera erro.
+Na baseline, `triang` e `retrossubs` escolhe entre duas linhas adjacentes a cada passo. Se o elemento abaixo do pivô for maior em módulo, realiza a troca. A troca pode criar um coeficiente em $J_{i,i+2}$. O código reutiliza a posição liberada da subdiagonal para guardá-lo até a retrocessão. A escolha do maior módulo limita o tamanho do multiplicador de eliminação. Um pivô final inválido gera erro.
 
 No caminho de Thomas, escreva $d_i=3-4x_i$, $b=-F$ e $p_i=d_i-2/p_{i-1}$. O primeiro pivô é $p_1=d_1$. Se todo $|d_i|\ge3$, por indução todo $|p_i|\ge2$. Assim, o caminho pode calcular $r_i=1/p_i$ uma vez por linha e usar esse recíproco para o lado direito reduzido $w_i=(b_i+w_{i-1})r_i$, com $w_1=b_1r_1$. Na volta, $\Delta x_i=w_i+2r_i\Delta x_{i+1}$.
 
@@ -26,11 +26,11 @@ Tanto a eliminação quanto a retrocessão percorrem cada linha uma vez. Cada li
 
 | Função | Decisão |
 |---|---|
-| `broyden_rhs()` | O laço interno da otimizada tem dois vizinhos válidos, sem teste de borda por elemento. As duas extremidades são tratadas fora do laço. |
-| `constroi_jacobiana()` | A otimizada escreve $N$ derivadas na região medida. As laterais ficam implícitas em Thomas e só são materializadas quando há pivotamento. |
-| `resolve_sistema()` | A verificação de dominância é vetorizável. O recíproco de cada pivô serve à eliminação e à retrocessão, o que reduz as divisões. |
-| `aplica_passo()` | A mesma passagem soma a correção e reduz um indicador inteiro de finitude. A troca de ponteiros evita copiar todo o vetor no fim do passo. |
-| `aloca_vetores()` | Cada fatia da otimizada começa em um endereço múltiplo de 64 bytes. Os buffers disjuntos permitem declarar `restrict` nos kernels. |
+| `calcF()` | O laço interno da otimizada tem dois vizinhos válidos, sem teste de borda por elemento. As duas extremidades são tratadas fora do laço. |
+| `calcJ()` | A otimizada escreve $N$ derivadas na região medida. As laterais ficam implícitas em Thomas e só são materializadas quando há pivotamento. |
+| `eliminacaoGauss()` | A verificação de dominância é vetorizável. O recíproco de cada pivô serve à eliminação e à retrocessão, o que reduz as divisões. |
+| `atualizaX()` | A mesma passagem soma a correção e reduz um indicador inteiro de finitude. A troca de ponteiros evita copiar todo o vetor no fim do passo. |
+| `alocaVetores()` | Cada fatia da otimizada começa em um endereço múltiplo de 64 bytes. Os buffers disjuntos permitem declarar `restrict` nos kernels. |
 
 O GCC 14.2 informou vetores de 32 e 64 bytes nos laços do resíduo interno, na diagonal principal, na checagem de dominância e na atualização. A inspeção de `jacobiana.o` mostrou `vmovapd` para acessos alinhados e de `sistema_linear.o` mostrou divisões escalares `vdivsd`. O pivô da linha seguinte usa o pivô calculado na linha anterior. Na retrocessão, a linha anterior usa a correção da linha seguinte. Essas dependências impedem aplicar diretamente SIMD em quatro ou oito linhas independentes. O código deixa os laços independentes com a vetorização automática do compilador.
 
